@@ -35,10 +35,9 @@ left join silver_consult.tb_crm_ia@consult_std b
   left join tb_silver_user_stat d
   on c.fa_id=d.user_id
   left join silver_njs.history_transfer e
-  on d.firm_id=e.firmid    -- 测试组拨打过的用户入金情况
-
+  on d.firm_id=e.firmid    
 where b.group_id=103 and a.user_id<>-1
-group by a.user_id,d.user_id
+group by a.user_id,d.user_id  -- 测试组拨打过的用户入金情况
 
 
 
