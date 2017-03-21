@@ -16,7 +16,7 @@ group by to_char(update_time,'yyyymm') --免佣券
 
 
 
-
+-- 校验
 
 select distinct substr(group_id,1,4)
 from tb_epay_transfer
