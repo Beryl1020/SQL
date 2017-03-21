@@ -14,7 +14,7 @@ min(case when inorout='A' then realdate end )首次入金时间
       b.contnum
     FROM
       (
-        SELECT
+        SELECT /*+driving_site(a)*/ /*+driving_site(b)*/
           id,
           crm_name,
           user_id,
