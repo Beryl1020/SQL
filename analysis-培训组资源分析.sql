@@ -20,6 +20,8 @@ and d.hdate ='20170320'
 group by a.ia_id,b.group_id,a.id,c.firm_id,c.partner_id,d.net_assets --现测试组资源情况
 
 
+
+
 select a.user_id,d.user_id,avg(a.worksec),
 sum(case when e.realdate between a.connect_time1 and a.connect_time1+7 and e.inorout='A' then e.inoutmoney end),
   sum(case when e.realdate between a.connect_time2 and a.connect_time2+7 and e.inorout='A' then e.inoutmoney end),
@@ -51,18 +53,17 @@ group by a.user_id,d.user_id  -- 测试组拨打过的用户入金情况
 
 
 
+
+
+
+
+
+
+
+
+
+
 select * from silver_consult.v_tb_crm_user@consult_std
-
-
-
-
-
-
-
-
-
-
-
 select * from silver_consult.tb_crm_tel_record@consult_std
 select * from silver_consult.tb_crm_ia@consult_std where name='董学雷'
 select * from silver_consult.v_tb_crm_user@consult_std
