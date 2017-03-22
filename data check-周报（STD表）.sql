@@ -24,7 +24,21 @@ join silver_consult.tb_crm_dispatch_his@consult_std dis on b1.user_id= dis.user_
 join silver_consult.tb_crm_ia@consult_std ia on dis.ia_id=ia.id
   join silver_consult.v_tb_crm_user@consult_std user1 on b1.user_id=user1.id and user1.id is not null
 
-where ia.group_id in (2,3,4,5,6,9,10,11,12,105) and user1.grade in ('A','A紧急','A暂缓','B') -- 新增资源数
+where ia.group_id in (2,3,4,5,6,9,10,11,12,105) and user1.grade in ('A','A紧急','A暂缓','B') -- 新增A/B类资源数
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 select count(distinct trans.user_id)
 from tb_crm_transfer_record@consult_std trans

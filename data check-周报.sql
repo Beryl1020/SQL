@@ -79,6 +79,18 @@ union ALL
   group by suba.firmid, suba.realdate) aaa
   where aaa.money >=50 group by aaa.firm_id) bbb group by 0 --pmec新增有效净入金用户，第二列为空
 
+
+----Part 3 投顾新单数据
+select sum(trans.pmec_net_value_sub+trans.pmec_net_in_sub) as 激活资金,
+  count(distinct trans.firm_id) as 流转单数
+from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+where to_char(trans.submit_time,'yyyymmdd') between 20170225 and 20170303
+and trans.process in(5,6) and trans.valid=1
+
+
+
+
+
 -- Part 4. 广贵所数据
   select sub1.money,sub2.money,sub3.money, sub3.money*0.00065+sub4.money+sub5.money,sub3.money*0.00065+sub5.money+sub6.money
     FROM
