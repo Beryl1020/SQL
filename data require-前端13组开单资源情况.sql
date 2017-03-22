@@ -24,7 +24,6 @@ select c.user_id, c.mindistime,d.type from
 SELECT a.id as id,a.user_id as user_id,a.ia_id as ia_id,min(a.create_time) as mindistime
 from
   silver_consult.tb_crm_dispatch_his@consult_std a
-
   left join silver_consult.tb_crm_ia@consult_std b
   on  a.ia_id=b.id
 where b.group_id=105
