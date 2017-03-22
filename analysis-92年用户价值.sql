@@ -199,6 +199,26 @@ SELECT id1,worksec
 )
 where worksec>0
 
+---- 1992年客户带来的交易额
+select /*+driving_site(a)*/ /*+driving_site(b)*/
+  sum(contqty) ,count(distinct a.user_id)
+from ods_history_deal@silver_stat_urs_30_link a
+join tb_crm_user@silver_stat_urs_30_link b
+  on a.user_id=b.id
+where to_char(b.birthday,'yyyy')='1992'
+and a.fdate between '20170320' and '20170321'
+
+---- 1992年客户带来的净入金
+select /*+driving_site(a)*/ /*+driving_site(c)*/
+  sum(case when a.inorout='A' then a.inoutmoney
+     end )
+from silver_njs.history_transfer a
+join tb_silver_user_stat b
+  on a.firmid=b.firm_id
+join tb_crm_user@silver_stat_urs_30_link c
+  on b.user_id=c.fa_id
+where to_char(c.birthday,'yyyy')='1992'
+and a.fdate between '20170320' and '20170321'
 
 
 
@@ -206,7 +226,6 @@ where worksec>0
 
 
 
-select * from
 select * from ods_history_deal@silver_stat_urs_30_link
 select * from tb_crm_user@silver_stat_urs_30_link
 select * from  info_silver.tb_silver_account@SILVER_STAT_URS_30_LINK -- 取客户编码（巨长那个）
