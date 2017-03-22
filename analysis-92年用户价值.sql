@@ -63,6 +63,25 @@ order by substr(a.birth_day,1,4) DESC
 
 
 
+-- 93年用户情况
+select /*+driving_site(a)*/ /*+driving_site(b)*/ /*+driving_site(d)*/
+  b.firmid,
+  count(distinct  c.firm_id ) as 开户人数,
+  sum(case
+      when trunc(d.trade_time)<=trunc(c.open_account_time)+30  then d.contqty end) as 开户30天交易额
+
+  from info_silver.src_certno_info@SILVER_STAT_URS_30_LINK a
+  join info_silver.tb_silver_account@SILVER_STAT_URS_30_LINK b
+    on a.certno=b.certno
+    join tb_silver_user_stat c
+    on b.firmid=c.firm_id
+    join ods_history_deal@silver_stat_urs_30_link  d
+    on b.firmid=d.firmid
+  where a.birth_day<=20170101
+    and to_char(c.OPEN_ACCOUNT_TIME,'yyyymmdd')>='20170101'
+    and substr(a.birth_day)
+  group by substr(a.birth_day,1,4)
+order by substr(a.birth_day,1,4) DESC
 
 
 
