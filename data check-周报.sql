@@ -45,7 +45,7 @@ union ALL
          count (distinct case when deal.fdate between 20170225 and 20170303 then deal.firmid end) as cnt2
        from ods_history_deal@silver_stat_urs_30_link deal
       where deal.fdate between 20170225 and 20170303
-         and deal.ordersty<>151
+      --   and deal.ordersty<>151 --非强平
       group by deal.fdate) a -- pmec日均交易用户，平台日均交易用户
 
 union ALL
@@ -137,17 +137,89 @@ and trans.process in(5,6) and trans.valid=1
       group by 6) sub6
     on sub1.subid<>sub6.subid
 
--- Part 9. 南交、广贵内外推折算交易额
-  select sum( case when deal.partner_id='njs' and refer.refer_1_type='Internal Channel' then deal.CONTQTY end) as njs内推,
-    sum( case when deal.partner_id='njs' and refer.refer_1_type='External Channel' then deal.CONTQTY end) as njs外推,
-    sum( case when deal.partner_id='njs' and (refer.refer_1_type not in ('Internal Channel','External Channel') or refer.refer_1_type is null) then deal.CONTQTY end) as njs其他,
-  sum( case when deal.partner_id='pmec' and refer.refer_1_type='Internal Channel' then deal.CONTQTY end) as pmec内推,
-    sum( case when deal.partner_id='pmec' and refer.refer_1_type='External Channel' then deal.CONTQTY end) as pmec外推,
-      sum( case when deal.partner_id='pmec' and (refer.refer_1_type not in ('Internal Channel','External Channel') or refer.refer_1_type is null) then deal.CONTQTY end) as pmec其他
-  from ods_history_deal@silver_stat_urs_30_link deal
-left join ods_history_user@silver_stat_urs_30_link refer
-    on deal.firmid=refer.firm_id
-    where deal.fdate between 20170225 and 20170303
+
+
+
+
+----Part 5 投顾近5周交易额、交易人数、净入金、收入及其在广贵所占比
+
+select sum(广贵交易额),sum(广贵交易人数)/5                           -- 广贵交易人数，广贵交易额
+  FROM
+    (
+        SELECT /*+driving_site(deal)*/ sum(deal.contqty) AS 广贵交易额,
+          count(DISTINCT deal.firmid) AS 广贵交易人数, deal.fdate
+        FROM  ods_history_deal@silver_stat_urs_30_link deal
+        WHERE
+        deal.fdate BETWEEN 20170225 AND 20170303
+        AND deal.partner_id='pmec'
+        AND deal.contqty IS NOT NULL AND deal.contqty>0
+      group by deal.fdate
+    )
+
+
+
+select sum(广贵交易额),sum(广贵交易人数)/5                          --后端投顾的广贵交易人数，广贵交易额
+  from
+    (
+      SELECT
+        /*+driving_site(deal)*/
+        sum(deal.contqty)           AS 广贵交易额,
+        count(DISTINCT deal.firmid) AS 广贵交易人数,
+        deal.fdate
+      FROM ods_history_deal@silver_stat_urs_30_link deal
+        JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+          ON deal.firmid = trans.firm_id
+      WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+            AND deal.fdate BETWEEN 20170225 AND 20170303
+            and deal.trade_time>trans.submit_time
+            AND trans.process IN (5, 6) AND trans.valid = 1
+            AND deal.partner_id = 'pmec'
+      GROUP BY deal.fdate
+    )
+
+
+
+select     /*+driving_site(trans)*/                         -- 后端投顾维护用户产出的平台收入
+sum (CASE when flow.changetype in (1,3) then flow.amount/8*6.5*(-1)
+     when flow.changetype in (8) then flow.amount*(-1)
+     when flow.changetype in (9,10) then flow.amount *(-1) end)
+/*+driving_site(trans)*/
+from silver_njs.pmec_zj_flow flow
+join info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+  on flow.loginaccount=trans.firm_id
+  join tb_silver_user_stat user1
+    on trans.firm_id=user1.firm_id
+where trans.cur_bgroup_id in (1,7,8,111)
+and trans.process in(5,6) and trans.valid=1
+and user1.partner_id='pmec'
+and trans.submit_time < flow.createdate
+and to_char(flow.createdate,'yyyymmdd') between '20170225' and '20170303'
+
+
+select /*+driving_site(trans)*/                             -- 后端投顾维护用户净入金
+  sum(case when inout.inorout='A' then inout.inoutmoney
+    when inout.inorout='B' then inout.inoutmoney*(-1) end)
+from silver_njs.history_transfer inout
+join info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+  on inout.firmid=trans.firm_id
+where trans.cur_bgroup_id in (1,7,8,111)
+and trans.process in(5,6) and trans.valid=1
+and inout.partnerid='pmec'
+and inout.fdate between 20170225 and 20170303
+
+
+
+
+
+
+
+
+select * from silver_njs.pmec_zj_flow
+select * from ods_history_deal@silver_stat_urs_30_link
+select * from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
+
+
+
 
 -- Part 6 每周电销资源转化情况
 
@@ -188,4 +260,19 @@ where (aa.num1 < 100000 AND aa.num2 >= 30)
          or (aa.num1 < 1000000 AND aa.num2 >= 240)
          or (aa.num1 < 2000000 AND aa.num2 >= 480)
           or (aa.num1 >= 2000000 AND aa.num2 >= 720)              -- 有效开仓
+
+
+
+
+-- Part 9. 南交、广贵内外推折算交易额
+  select sum( case when deal.partner_id='njs' and refer.refer_1_type='Internal Channel' then deal.CONTQTY end) as njs内推,
+    sum( case when deal.partner_id='njs' and refer.refer_1_type='External Channel' then deal.CONTQTY end) as njs外推,
+    sum( case when deal.partner_id='njs' and (refer.refer_1_type not in ('Internal Channel','External Channel') or refer.refer_1_type is null) then deal.CONTQTY end) as njs其他,
+  sum( case when deal.partner_id='pmec' and refer.refer_1_type='Internal Channel' then deal.CONTQTY end) as pmec内推,
+    sum( case when deal.partner_id='pmec' and refer.refer_1_type='External Channel' then deal.CONTQTY end) as pmec外推,
+      sum( case when deal.partner_id='pmec' and (refer.refer_1_type not in ('Internal Channel','External Channel') or refer.refer_1_type is null) then deal.CONTQTY end) as pmec其他
+  from ods_history_deal@silver_stat_urs_30_link deal
+left join ods_history_user@silver_stat_urs_30_link refer
+    on deal.firmid=refer.firm_id
+    where deal.fdate between 20170225 and 20170303
 
