@@ -258,32 +258,134 @@ where (aa.num1 < 100000 AND aa.num2 >= 30)
 
 -- Part 8.  后端维护用户资金、出入金及交易情况
 
-select /*+driving_site(trans)*/
-  sum(trans.pmec_net_value_sub+trans.pmec_net_in_sub) as  总接手资金,
-  sum(case when to_char(trans.submit_time,'yyyymmdd') between 20170225 and 20170303
-    then trans.pmec_net_value_sub+trans.pmec_net_in_sub end) as 本周接收资金
-from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
-where trans.cur_bgroup_id in(1,7,8,111)
-and trans.process in (5,6) and trans.valid=1
-
-select /*+driving_site(trans)*/
-  sum(CASE when inout.inorout='A' then inout.inoutmoney end) as 总入金量,
-  sum(CASE when inout.inorout='B' then inout.inoutmoney end) as 总出金量
-from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
-join silver_njs.history_transfer inout
-  on trans.firm_id=inout.firmid
-where trans.cur_bgroup_id in(1,7,8,111)
-  and trans.process in (5,6) and trans.valid=1
-and inout.fdate between 20170225 and 20170303
-
-
-
-select * from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
-select * from silver_njs.history_transfer
-
-
-
-
+select b1.id,b1.总接手资金,b1.本周接收资金,b1.服务用户数,b1.本周新增服务用户数,
+b2.总入金量,b2.总出金量,b3.交易用户数,b4.有效开仓用户数,b5.维护间隔
+from
+  (
+    SELECT
+      /*+driving_site(trans)*/
+      trans.cur_bgroup_id                                          AS id,
+      sum(trans.pmec_net_value_sub + trans.pmec_net_in_sub)        AS 总接手资金,
+      sum(CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170225 AND 20170303
+        THEN trans.pmec_net_value_sub + trans.pmec_net_in_sub END) AS 本周接收资金,
+      count(DISTINCT trans.firm_id)                                AS 服务用户数,
+      count(DISTINCT CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170225 AND 20170303
+        THEN trans.firm_id END)                                    AS 本周新增服务用户数
+    FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+    WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+          AND trans.process IN (5, 6) AND trans.valid = 1
+    GROUP BY trans.cur_bgroup_id
+  ) b1
+JOIN
+  (
+    SELECT
+      /*+driving_site(trans)*/
+      trans.cur_bgroup_id as id,
+      sum(CASE WHEN inout.inorout = 'A'
+        THEN inout.inoutmoney END) AS 总入金量,
+      sum(CASE WHEN inout.inorout = 'B'
+        THEN inout.inoutmoney END) AS 总出金量
+    FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+      JOIN silver_njs.history_transfer inout
+        ON trans.firm_id = inout.firmid
+    WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+          AND trans.process IN (5, 6) AND trans.valid = 1
+          AND inout.fdate BETWEEN 20170225 AND 20170303
+          AND trans.submit_time < inout.realdate
+    GROUP BY trans.cur_bgroup_id
+    ) b2
+  on b1.id=b2.id
+join
+    (
+      SELECT
+        /*+driving_site(trans)*/
+        /*+driving_site(deal)*/
+        trans.cur_bgroup_id as id,
+        count(DISTINCT trans.firm_id) AS 交易用户数
+      FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+        JOIN ods_history_deal@silver_stat_urs_30_link deal
+          ON trans.firm_id = deal.firmid
+      WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+            AND trans.process IN (5, 6) AND trans.valid = 1
+            AND trans.submit_time < deal.trade_time
+            AND deal.fdate BETWEEN 20170225 AND 20170303
+      GROUP BY trans.cur_bgroup_id
+      ) b3
+    on b1.id=b3.id
+JOIN
+    (
+      SELECT
+        /*+driving_site(trans)*/
+        /*+driving_site(deal)*/
+        aaa.cur_bgroup_id as id,
+        count(DISTINCT aaa.firm_id) AS 有效开仓用户数
+      FROM
+        (
+          SELECT
+            /*+driving_site(deal)*/
+            aa.firm_id                        AS firm_id,
+            aa.cur_bgroup_id                  AS cur_bgroup_id,
+            aa.fmoney                         AS fmoney,
+            sum(CASE WHEN deal.wareid = 'GDAG'
+              THEN deal.contnum
+                WHEN deal.wareid = 'GDPT'
+                  THEN deal.contnum * 56
+                WHEN deal.wareid = 'GDPD'
+                  THEN deal.contnum * 30 END) AS contnum
+          FROM
+            (
+              SELECT DISTINCT
+                /*+driving_site(trans)*/
+                trans.firm_id                                    AS firm_id,
+                trans.cur_bgroup_id                              AS cur_bgroup_id,
+                trans.pmec_net_value_sub + trans.pmec_net_in_sub AS fmoney,
+                trans.submit_time                                AS submit_time
+              FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+              WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+                    AND trans.process IN (5, 6) AND trans.valid = 1
+            ) aa
+            JOIN ods_history_deal@silver_stat_urs_30_link deal
+              ON aa.firm_id = deal.firmid
+                 AND aa.submit_time < deal.trade_time
+          --WHERE deal.fdate <= 20170303
+          GROUP BY aa.firm_id, aa.fmoney, aa.cur_bgroup_id
+        ) aaa
+      WHERE (aaa.fmoney < 100000 AND aaa.contnum >= 30)
+            OR (aaa.fmoney < 200000 AND aaa.contnum >= 60)
+            OR (aaa.fmoney < 300000 AND aaa.contnum >= 120)
+            OR (aaa.fmoney < 500000 AND aaa.contnum >= 180)
+            OR (aaa.fmoney < 1000000 AND aaa.contnum >= 240)
+            OR (aaa.fmoney < 2000000 AND aaa.contnum >= 480)
+            OR (aaa.fmoney >= 2000000 AND aaa.contnum >= 720)
+      GROUP BY aaa.cur_bgroup_id
+      ) b4
+    on b1.id=b4.id
+JOIN
+    (
+      SELECT                                                                               -- 维护间隔
+        a.cur_bgroup_id as id,
+        avg(a.delta) as 维护间隔
+      FROM
+        (
+          SELECT
+            /*+driving_site(trans)*/
+            trans.firm_id,
+            trans.cur_bgroup_id                           AS cur_bgroup_id,
+            min(tel.create_time) - min(trans.submit_time) AS delta
+          FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+            JOIN tb_crm_tel_record@silver_stat_urs_30_link tel
+              ON tel.user_id = trans.user_id
+          WHERE tel.create_time > trans.submit_time
+                AND to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170225 AND 20170303
+                AND to_char(tel.create_time, 'yyyymmdd') <= 20170303
+                AND trans.cur_bgroup_id IN (1, 7, 8, 111)
+                AND trans.process IN (5, 6) AND trans.valid = 1
+          GROUP BY trans.firm_id, trans.cur_bgroup_id
+        ) a
+      WHERE a.delta IS NOT NULL AND a.delta > 0
+      GROUP BY a.cur_bgroup_id
+      ) b5
+    on b1.id=b5.id
 
 
 
