@@ -143,80 +143,74 @@ and trans.process in(5,6) and trans.valid=1
 
 ----Part 5 投顾近5周交易额、交易人数、净入金、收入及其在广贵所占比
 
-select sum(广贵交易额),sum(广贵交易人数)/5                           -- 广贵交易人数，广贵交易额
-  FROM
-    (
-        SELECT /*+driving_site(deal)*/ sum(deal.contqty) AS 广贵交易额,
-          count(DISTINCT deal.firmid) AS 广贵交易人数, deal.fdate
-        FROM  ods_history_deal@silver_stat_urs_30_link deal
-        WHERE
-        deal.fdate BETWEEN 20170225 AND 20170303
-        AND deal.partner_id='pmec'
-        AND deal.contqty IS NOT NULL AND deal.contqty>0
-      group by deal.fdate
-    )
-
-
-
-select sum(广贵交易额),sum(广贵交易人数)/5                          --后端投顾的广贵交易人数，广贵交易额
+select aaa.投顾广贵交易额,aaa.投顾广贵交易人数,bbb.后端用户平台收入,ccc.后端用户净入金
   from
+    (SELECT
+       /*+driving_site(deal)*/
+       /*+driving_site(trans)*/
+       1               AS id,
+       sum(广贵交易额)      AS 投顾广贵交易额,                                --后端投顾的广贵交易人数，广贵交易额
+       sum(广贵交易人数) / 5 AS 投顾广贵交易人数
+     FROM
+       (
+         SELECT
+           /*+driving_site(deal)*/
+           /*+driving_site(trans)*/
+           sum(deal.contqty)           AS 广贵交易额,
+           count(DISTINCT deal.firmid) AS 广贵交易人数,
+           deal.fdate
+         FROM ods_history_deal@silver_stat_urs_30_link deal
+           JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+             ON deal.firmid = trans.firm_id
+         WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+               AND deal.fdate BETWEEN 20170225 AND 20170303
+               AND deal.trade_time > trans.submit_time
+               AND trans.process IN (5, 6) AND trans.valid = 1
+               AND deal.partner_id = 'pmec'
+         GROUP BY deal.fdate
+       )
+    ) aaa
+join
+
     (
       SELECT
-        /*+driving_site(deal)*/
-        sum(deal.contqty)           AS 广贵交易额,
-        count(DISTINCT deal.firmid) AS 广贵交易人数,
-        deal.fdate
-      FROM ods_history_deal@silver_stat_urs_30_link deal
+        /*+driving_site(trans)*/                                             -- 后端投顾维护用户产出的平台收入
+        2                                  AS ID,
+        sum(CASE WHEN flow.changetype IN (1, 3)
+          THEN flow.amount / 8 * 6.5 * (-1)
+            WHEN flow.changetype IN (8)
+              THEN flow.amount * (-1)
+            WHEN flow.changetype IN (9, 10)
+              THEN flow.amount * (-1) END) AS 后端用户平台收入
+      /*+driving_site(trans)*/
+      FROM silver_njs.pmec_zj_flow flow
         JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
-          ON deal.firmid = trans.firm_id
+          ON flow.loginaccount = trans.firm_id
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
-            AND deal.fdate BETWEEN 20170225 AND 20170303
-            and deal.trade_time>trans.submit_time
-            AND trans.process IN (5, 6) AND trans.valid = 1
-            AND deal.partner_id = 'pmec'
-      GROUP BY deal.fdate
-    )
+            and  trans.process IN (5, 6) AND trans.valid = 1
+            AND trans.submit_time < flow.createdate
+            AND to_char(flow.fdate, 'yyyymmdd') BETWEEN '20170225' AND '20170303'
+    ) bbb
+on aaa.id<>bbb.id
 
-
-
-select     /*+driving_site(trans)*/                         -- 后端投顾维护用户产出的平台收入
-sum (CASE when flow.changetype in (1,3) then flow.amount/8*6.5*(-1)
-     when flow.changetype in (8) then flow.amount*(-1)
-     when flow.changetype in (9,10) then flow.amount *(-1) end)
-/*+driving_site(trans)*/
-from silver_njs.pmec_zj_flow flow
-join info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
-  on flow.loginaccount=trans.firm_id
-  join tb_silver_user_stat user1
-    on trans.firm_id=user1.firm_id
-where trans.cur_bgroup_id in (1,7,8,111)
-and trans.process in(5,6) and trans.valid=1
-and user1.partner_id='pmec'
-and trans.submit_time < flow.createdate
-and to_char(flow.createdate,'yyyymmdd') between '20170225' and '20170303'
-
-
-select /*+driving_site(trans)*/                             -- 后端投顾维护用户净入金
-  sum(case when inout.inorout='A' then inout.inoutmoney
-    when inout.inorout='B' then inout.inoutmoney*(-1) end)
-from silver_njs.history_transfer inout
-join info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
-  on inout.firmid=trans.firm_id
-where trans.cur_bgroup_id in (1,7,8,111)
-and trans.process in(5,6) and trans.valid=1
-and inout.partnerid='pmec'
-and inout.fdate between 20170225 and 20170303
-
-
-
-
-
-
-
-
-select * from silver_njs.pmec_zj_flow
-select * from ods_history_deal@silver_stat_urs_30_link
-select * from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
+join
+      (
+        SELECT
+          /*+driving_site(trans)*/                                                  -- 后端投顾维护用户净入金
+          3                                       AS ID,
+          sum(CASE WHEN inout.inorout = 'A'
+            THEN inout.inoutmoney
+              WHEN inout.inorout = 'B'
+                THEN inout.inoutmoney * (-1) END) AS 后端用户净入金
+        FROM silver_njs.history_transfer inout
+          JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+            ON inout.firmid = trans.firm_id
+        WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
+              AND trans.process IN (5, 6) AND trans.valid = 1
+              AND inout.partnerid = 'pmec'
+              AND inout.fdate BETWEEN 20170225 AND 20170303
+      )ccc
+on aaa.id<>ccc.id
 
 
 
@@ -259,7 +253,36 @@ where (aa.num1 < 100000 AND aa.num2 >= 30)
         or (aa.num1 < 500000 AND aa.num2 >= 180)
          or (aa.num1 < 1000000 AND aa.num2 >= 240)
          or (aa.num1 < 2000000 AND aa.num2 >= 480)
-          or (aa.num1 >= 2000000 AND aa.num2 >= 720)              -- 有效开仓
+          or (aa.num1 >= 2000000 AND aa.num2 >= 720)                            ---  有效开仓
+
+
+-- Part 8.  后端维护用户资金、出入金及交易情况
+
+select /*+driving_site(trans)*/
+  sum(trans.pmec_net_value_sub+trans.pmec_net_in_sub) as  总接手资金,
+  sum(case when to_char(trans.submit_time,'yyyymmdd') between 20170225 and 20170303
+    then trans.pmec_net_value_sub+trans.pmec_net_in_sub end) as 本周接收资金
+from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+where trans.cur_bgroup_id in(1,7,8,111)
+and trans.process in (5,6) and trans.valid=1
+
+select /*+driving_site(trans)*/
+  sum(CASE when inout.inorout='A' then inout.inoutmoney end) as 总入金量,
+  sum(CASE when inout.inorout='B' then inout.inoutmoney end) as 总出金量
+from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+join silver_njs.history_transfer inout
+  on trans.firm_id=inout.firmid
+where trans.cur_bgroup_id in(1,7,8,111)
+  and trans.process in (5,6) and trans.valid=1
+and inout.fdate between 20170225 and 20170303
+
+
+
+select * from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
+select * from silver_njs.history_transfer
+
+
+
 
 
 

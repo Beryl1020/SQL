@@ -33,6 +33,8 @@ where ia.group_id in (2,3,4,5,6,9,10,11,12,105) and user1.grade in ('A','A紧急
 
 
 
+select * from silver_consult.tb_crm_ia@consult_std where group_id=108
+select * from silver_consult.v_tb_crm_user@consult_std where IA_ID in(895,682)
 
 
 
