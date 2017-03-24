@@ -31,37 +31,3 @@ where ia.group_id in (2,3,4,5,6,9,10,11,12,105) and user1.grade in ('A','A紧急
 
 
 
-
-
-select * from silver_consult.tb_crm_ia@consult_std where group_id=108
-select * from silver_consult.v_tb_crm_user@consult_std where IA_ID in(895,682)
-
-
-
-
-
-
-
-select count(distinct trans.user_id)
-from tb_crm_transfer_record@consult_std trans
-  left join silver_consult.tb_crm_ia@consult_std ia
-  on trans.fia_id=ia.id
-where trans.process in (5,6) and trans.valid=1
-      and to_char(trans.submit_time,'yyyymmdd') between 20170225 and 20170303
-and ia.group_id in (2,3,4,5,6,9,10,11,12,105)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

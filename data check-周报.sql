@@ -186,9 +186,9 @@ join
         JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
           ON flow.loginaccount = trans.firm_id
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
-            and  trans.process IN (5, 6) AND trans.valid = 1
+            and trans.process IN (5, 6) AND trans.valid = 1
             AND trans.submit_time < flow.createdate
-            AND to_char(flow.fdate, 'yyyymmdd') BETWEEN '20170225' AND '20170303'
+            AND to_char(flow.fdate, 'yyyymmdd') BETWEEN 20170225 AND 20170303
     ) bbb
 on aaa.id<>bbb.id
 
@@ -205,9 +205,9 @@ join
           JOIN info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
             ON inout.firmid = trans.firm_id
         WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
-              AND trans.process IN (5, 6) AND trans.valid = 1
+              and trans.process IN (5, 6) AND trans.valid = 1
               AND inout.partnerid = 'pmec'
-              AND inout.fdate BETWEEN 20170311 AND 20170317
+              AND inout.fdate BETWEEN 20170225 AND 20170303
       )ccc
 on aaa.id<>ccc.id
 
@@ -315,7 +315,7 @@ from
         THEN trans.firm_id END)                                    AS 本周新增服务用户数
     FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
-          AND trans.process IN (5, 6) AND trans.valid = 1
+          AND trans.process IN (5, 6) AND trans.valid = 1 -- and to_char(trans.submit_time,'yyyymmdd')<=20170323
     GROUP BY trans.cur_bgroup_id
   ) b1
 JOIN
@@ -350,7 +350,7 @@ join
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
             AND trans.process IN (5, 6) AND trans.valid = 1
             AND trans.submit_time < deal.trade_time
-            AND deal.fdate BETWEEN 20170318 AND 20170323
+            AND deal.fdate BETWEEN 20170225 AND 20170303
       GROUP BY trans.cur_bgroup_id
       ) b3
     on b1.id=b3.id
@@ -360,7 +360,7 @@ JOIN
         /*+driving_site(trans)*/
         /*+driving_site(deal)*/
         aaa.cur_bgroup_id as id,
-        count(DISTINCT aaa.firm_id) AS 有效开仓用户数
+        count(DISTINCT aaa.firm_id) AS 有效开仓用户数                             ---有效开仓
       FROM
         (
           SELECT
@@ -389,7 +389,8 @@ JOIN
             JOIN ods_history_deal@silver_stat_urs_30_link deal
               ON aa.firm_id = deal.firmid
                  AND aa.submit_time < deal.trade_time
-          --WHERE deal.fdate <= 20170303
+              and to_char(deal.trade_time,'yyyymmdd')<20170323
+             and trunc(to_Date(deal.fdate,'yyyymmdd'),'mm')<=add_months(trunc(aa.submit_time,'mm'),1)
           GROUP BY aa.firm_id, aa.fmoney, aa.cur_bgroup_id
         ) aaa
       WHERE (aaa.fmoney < 100000 AND aaa.contnum >= 30)
@@ -418,10 +419,12 @@ JOIN
             JOIN tb_crm_tel_record@silver_stat_urs_30_link tel
               ON tel.user_id = trans.user_id
           WHERE tel.create_time > trans.submit_time
-                AND to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170225 AND 20170303
-                AND to_char(tel.create_time, 'yyyymmdd') <= 20170303
+                AND to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170311 AND 20170317
+                AND to_char(tel.create_time, 'yyyymmdd') = to_char(trans.submit_time, 'yyyymmdd')
+                and tel.ia_id = trans.bia_id
                 AND trans.cur_bgroup_id IN (1, 7, 8, 111)
                 AND trans.process IN (5, 6) AND trans.valid = 1
+                and tel.worksec > 0
           GROUP BY trans.firm_id, trans.cur_bgroup_id
         ) a
       WHERE a.delta IS NOT NULL AND a.delta > 0
@@ -442,6 +445,7 @@ JOIN
 left join ods_history_user@silver_stat_urs_30_link refer
     on deal.firmid=refer.firm_id
     where deal.fdate between 20170225 and 20170303
+
 
 
 

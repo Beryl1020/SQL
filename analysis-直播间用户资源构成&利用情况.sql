@@ -8,11 +8,12 @@ group by a.user_id
 
 
 
-select * from tb_crm_transfer_record@consult_std a                 --个别用户检验
+select * from silver_consult.tb_crm_dispatch_his@consult_std a                --个别用户检验
 
-join silver_consult.tb_crm_ia@consult_std b
-on a.ia_id=b.id
-where a.user_id =1000472219
+--join silver_consult.tb_crm_ia@consult_std b
+--on a.ia_id=b.id
+where a.user_id =1000513962
+
 
 select id,name,group_id from silver_consult.tb_crm_ia@consult_std
 
@@ -75,3 +76,9 @@ select distinct a.user_id,c.open_account_time from silver_consult.tb_crm_dispatc
   on a.user_id = b.id
   join tb_silver_user_stat c  on b.fa_id=c.user_id
 where a.type=24
+
+
+select * from tb_Crm_living_room_apply where apply_type = 1
+
+
+
