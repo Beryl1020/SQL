@@ -68,3 +68,10 @@ join silver_njs.history_transfer d
     on c.firm_id=d.firmid
 where a.type=24
 group by a.user_id
+
+
+select distinct a.user_id,c.open_account_time from silver_consult.tb_crm_dispatch_his@consult_std a
+  join silver_consult.v_tb_crm_user@consult_std b
+  on a.user_id = b.id
+  join tb_silver_user_stat c  on b.fa_id=c.user_id
+where a.type=24

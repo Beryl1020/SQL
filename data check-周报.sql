@@ -48,11 +48,12 @@ union ALL
       --   and deal.ordersty<>151 --非强平
       group by deal.fdate) a -- pmec日均交易用户，平台日均交易用户
 
-union ALL
+
+union all
 
   select count (distinct case when partner_id ='pmec' and TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170225 and 20170303 then firm_id end )/5,
     count (distinct case when TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170225 and 20170303 then firm_id end )/5
-    from tb_silver_user_stat -- pmec日均入金用户，平台日均入金用户
+    from tb_silver_user_stat -- pmec日均开户用户，平台日均开户用户
 
 union ALL
 
@@ -255,6 +256,49 @@ where (aa.num1 < 100000 AND aa.num2 >= 30)
          or (aa.num1 < 2000000 AND aa.num2 >= 480)
           or (aa.num1 >= 2000000 AND aa.num2 >= 720)                            ---  有效开仓
 
+-- Part 7.  每周电销资源转化情况
+
+select '微销前端开单',count(distinct user_id)
+from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
+where process in (5,6) and valid=1
+      and to_char(submit_time,'yyyymmdd') between 20170225 and 20170303
+      and fgroup_id in (112,113,114,106) --微销前端开单
+
+union all
+
+SELECT
+  '微销当周接单当周有效开仓',count (aa.id)
+FROM
+  (SELECT /*+driving_site(deal)*/
+     distinct trans.firm_id                                         AS id,
+     max(trans.PMEC_NET_VALUE_SUB + trans.PMEC_NET_IN_SUB) AS num1,
+     sum(CASE WHEN deal.wareid = 'GDAG'
+       THEN deal.contnum
+         WHEN deal.wareid = 'GDPT'
+           THEN deal.contnum * 56
+         WHEN deal.wareid = 'GDPD'
+           THEN deal.contnum * 30 END)                     AS num2
+   FROM info_silver.ods_crm_transfer_record@silver_stat_urs_30_link trans
+     LEFT JOIN ods_history_deal@silver_stat_urs_30_link deal
+       ON trans.firm_id = deal.firmid
+   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170225 AND 20170303
+         AND trans.fgroup_id IN (112,113,114,106)
+         AND trans.process IN (5, 6) AND trans.valid = 1
+         AND (deal.trade_time > trans.submit_time)
+         AND deal.fdate <=20170303
+   GROUP BY trans.firm_id) aa
+where (aa.num1 < 100000 AND aa.num2 >= 30)
+       or (aa.num1 < 200000 AND aa.num2 >= 60)
+        or (aa.num1 < 300000 AND aa.num2 >= 120)
+        or (aa.num1 < 500000 AND aa.num2 >= 180)
+         or (aa.num1 < 1000000 AND aa.num2 >= 240)
+         or (aa.num1 < 2000000 AND aa.num2 >= 480)
+          or (aa.num1 >= 2000000 AND aa.num2 >= 720)                            ---  有效开仓
+
+
+
+
+
 
 -- Part 8.  后端维护用户资金、出入金及交易情况
 
@@ -400,4 +444,7 @@ JOIN
 left join ods_history_user@silver_stat_urs_30_link refer
     on deal.firmid=refer.firm_id
     where deal.fdate between 20170225 and 20170303
+
+
+
 
