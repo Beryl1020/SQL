@@ -147,7 +147,6 @@ and trans.process in(5,6) and trans.valid=1
 select aaa.投顾广贵交易额,aaa.投顾广贵交易人数,bbb.后端用户平台收入,ccc.后端用户净入金
   from
     (SELECT
-       /*+driving_site(deal)*/
        /*+driving_site(trans)*/
        1               AS id,
        sum(广贵交易额)      AS 投顾广贵交易额,                                --后端投顾的广贵交易人数，广贵交易额
@@ -156,7 +155,6 @@ select aaa.投顾广贵交易额,aaa.投顾广贵交易人数,bbb.后端用户�
        (
          SELECT
            /*+driving_site(deal)*/
-           /*+driving_site(trans)*/
            sum(deal.contqty)           AS 广贵交易额,
            count(DISTINCT deal.firmid) AS 广贵交易人数,
            deal.fdate
@@ -209,7 +207,7 @@ join
         WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
               AND trans.process IN (5, 6) AND trans.valid = 1
               AND inout.partnerid = 'pmec'
-              AND inout.fdate BETWEEN 20170225 AND 20170303
+              AND inout.fdate BETWEEN 20170311 AND 20170317
       )ccc
 on aaa.id<>ccc.id
 
@@ -228,7 +226,7 @@ where process in (5,6) and valid=1
 union all
 
 SELECT
-  '电销当周接单当周有效开仓',count (aa.id)
+  '电销当周开单当周有效开仓',count (aa.id)
 FROM
   (SELECT /*+driving_site(deal)*/
      distinct trans.firm_id                                         AS id,
@@ -256,7 +254,7 @@ where (aa.num1 < 100000 AND aa.num2 >= 30)
          or (aa.num1 < 2000000 AND aa.num2 >= 480)
           or (aa.num1 >= 2000000 AND aa.num2 >= 720)                            ---  有效开仓
 
--- Part 7.  每周电销资源转化情况
+-- Part 7.  每周微销资源转化情况
 
 select '微销前端开单',count(distinct user_id)
 from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link
@@ -267,7 +265,7 @@ where process in (5,6) and valid=1
 union all
 
 SELECT
-  '微销当周接单当周有效开仓',count (aa.id)
+  '微销当周开单当周有效开仓',count (aa.id)
 FROM
   (SELECT /*+driving_site(deal)*/
      distinct trans.firm_id                                         AS id,
@@ -352,7 +350,7 @@ join
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
             AND trans.process IN (5, 6) AND trans.valid = 1
             AND trans.submit_time < deal.trade_time
-            AND deal.fdate BETWEEN 20170225 AND 20170303
+            AND deal.fdate BETWEEN 20170318 AND 20170323
       GROUP BY trans.cur_bgroup_id
       ) b3
     on b1.id=b3.id
