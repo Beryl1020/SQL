@@ -78,7 +78,8 @@ select distinct a.user_id,c.open_account_time from silver_consult.tb_crm_dispatc
 where a.type=24
 
 
-select * from tb_Crm_living_room_apply where apply_type = 1
+select * from silver_consult.tb_Crm_living_room_apply
+
 
 
 
