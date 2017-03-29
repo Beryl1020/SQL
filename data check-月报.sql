@@ -72,7 +72,13 @@ select sum(case when partnerid='pmec'  and inorout='A' then inoutmoney          
 where fdate between 20170201 and 20170228
 
 
-
+select
+  count(case when aa.firmid)
+    (
+  SELECT firmid, partner_id, MIN (trade_time) AS mintime
+  FROM ods_history_deal@silver_stat_urs_30_link
+  GROUP BY firmid, partner_id
+    ) aa
 
 
 

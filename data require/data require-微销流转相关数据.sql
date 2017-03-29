@@ -14,7 +14,7 @@ min(case when inorout='A' then realdate end )首次入金时间
       b.contnum
     FROM
       (
-        SELECT /*+driving_site(a)*/ /*+driving_site(b)*/
+        SELECT /*+driving_site(a)*/
           id,
           crm_name,
           user_id,
@@ -37,6 +37,13 @@ group by id,crm_name,user_id,fname,submit_time,dispatch_time,jhzj,firm_id,contnu
  on a.user_id=b.user_id and trunc(a.流转时间)=b.stat_date)a
  left join tb_crm_transfer_record_his@SILVER_STAT_URS_30_LINK b
  on b.process=3 and  a.id=b.transfer_record_id
+
+
+
+
+
+
+select * from info_silver.ods_crm_transfer_record@silver_stat_urs_30_link where process <>-1
 
 select * from DW_CRM_TRANS_DETAIL_BF@silver_stat_urs_30_link
 

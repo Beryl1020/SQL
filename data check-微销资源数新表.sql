@@ -1,5 +1,4 @@
-select * from
-silver_consult.tb_crm_user_wechat_info@consult_std where ia_alias='wyy4029';
+select * from silver_consult.tb_crm_user_wechat_info@consult_std --where ia_alias='wyy4029';
 select * from silver_consult.tb_crm_wechatinfo@consult_std;
 select * from tb_crm_transfer_record@consult_std;
 select * from silver_consult.tb_crm_ia@consult_std where id=608;
