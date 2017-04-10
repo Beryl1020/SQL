@@ -27,6 +27,8 @@ join silver_consult.tb_crm_ia@consul_std ia on dis.ia_id=ia.id
 where ia.group_id in (2,3,4,5,6,9,10,11,12,105) and user1.grade in ('A','A紧急','A暂缓','B') -- 新增A/B类资源数
 
 
+select * from tb_crm_transfer_record@consul_std
+
 
 
 

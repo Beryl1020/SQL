@@ -37,7 +37,10 @@ FROM silver_consult.tb_crm_tag_user_rel@consul_std    --18
 SELECT *
 FROM info_silver.pmec_zj_flow
 SELECT *
-FROM info_silver.edw_fund_fact_d where partner_id='pmec'
+FROM info_silver.edw_fund_fact_d
+WHERE partner_id = 'pmec'
+SELECT *
+FROM info_silver.pmec_zj_flow
 
 
 
