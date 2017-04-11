@@ -57,3 +57,6 @@ group by to_char(bbb.date1,'yyyymmdd'),his.refer_1_type,his.refer_2_type
 
 
 
+
+
+
