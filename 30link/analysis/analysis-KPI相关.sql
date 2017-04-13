@@ -433,15 +433,16 @@ select * from info_silver.ods_crm_transfer_record
 
 
 /* 各月份投顾人数 */
-select distinct fia_id, fname from info_silver.ods_crm_transfer_record c
+select distinct c.firm_id from info_silver.ods_crm_transfer_record c
 where  to_char(c.submit_time,'yyyymm') = 201703 /*流转时间*/
    and c.process in (5,6) and c.valid=1
- and c.bgroup_id in (111)
+ and c.bgroup_id in (1,7,8)
 
 select * from info_silver.ods_crm_transfer_record where fia_id=154
 
 select * from info_silver.tb_crm_ia where status=1 and group_id in (106,112,113,114) and name not like '%资源%'
 
+select * from info_silver.ods_crm_transfer_record
 
 
 
