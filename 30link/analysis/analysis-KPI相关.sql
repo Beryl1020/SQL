@@ -147,10 +147,24 @@ WHERE to_char(trans.submit_time, 'yyyymmdd') <20170101
 
 SELECT count(distinct trans.user_id),count(distinct trans.fia_id),sum(trans.pmec_net_in_sub+trans.pmec_net_value_sub)
 FROM info_silver.ods_crm_transfer_record trans                                                              --微销开单激活资金
-WHERE trans.fgroup_id in (111,112,113,106)
+WHERE trans.fgroup_id in (114,112,113,106)
       AND trans.process IN (5, 6) AND trans.valid = 1
-and to_char(trans.submit_time,'yyyymmdd') between 20170101 and 20170331
+and to_char(trans.submit_time,'yyyymmdd') between 20170201 and 20170231
 
+
+select * from info_silver.ods_crm_transfer_record where fgroup_id in (112,113,114,106) and bgroup_id not in(111)
+and to_char(submit_time,'yyyymmdd') between 20170201 and 20170231;
+
+select * from info_silver.ods_crm_transfer_record where fgroup_id  not in (112,113,114,106) and bgroup_id  in (111)
+and to_char(submit_time,'yyyymmdd') between 20170201 and 20170231;
+
+
+
+SELECT count(distinct trans.user_id),count(distinct trans.fia_id),sum(trans.pmec_net_in_sub+trans.pmec_net_value_sub)
+FROM info_silver.ods_crm_transfer_record trans                                                              --微销开单激活资金
+WHERE trans.bgroup_id in (111)
+      AND trans.process IN (5, 6) AND trans.valid = 1
+and to_char(trans.submit_time,'yyyymmdd') between 20170201 and 20170231
 
 
 SELECT count(distinct trans.user_id),count(distinct trans.fia_id),sum(trans.pmec_net_in_sub+trans.pmec_net_value_sub)
@@ -158,6 +172,8 @@ FROM info_silver.ods_crm_transfer_record trans                                  
 WHERE trans.fgroup_id in (2,3,4,5,6,9,10,11,12,105)
       AND trans.process IN (5, 6) AND trans.valid = 1
 and to_char(trans.submit_time,'yyyymmdd') between 20170301 and 20170331
+
+
 
 
 
