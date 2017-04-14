@@ -75,6 +75,9 @@ WHERE deal.contqty > 0
 GROUP BY deal.firmid
 
 
+select * from
+
+
 
 
 SELECT                                  --净入金合计
@@ -121,6 +124,26 @@ where --used_margin > 0 and
 -- where acc.margin > 0
 group by acc.fdate
 order by acc.fdate
+
+select acc.fdate,avg(acc.margin) as 仓位                                             --每日仓位
+  from
+(select a.loginaccount,b.user_id,b.crm_name,b.cur_bname,to_char(a.fdate,'yyyymmdd') as fdate,a.used_margin/a.netvalue as margin
+  from info_silver.pmec_account_info a
+    join info_silver.ods_crm_transfer_record b
+    on a.loginaccount=b.firm_id
+
+where --used_margin > 0 and
+      to_char(a.fdate,'yyyymmdd') =to_char(sysdate-1,'yyyymmdd')
+      and a.netvalue>0
+and b.process in(5,6) and b.valid=1 and to_char(b.submit_time,'yyyymmdd')=to_char(sysdate-1,'yyyymmdd')
+  and b.fgroup_id in(2,3,4,5,6,9,10,11,12,105)
+) acc
+
+group by acc.fdate
+order by acc.fdate
+
+select * from info_silver.ods_crm_transfer_record
+select * from info_silver.pmec_account_info
 
 
 

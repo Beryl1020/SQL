@@ -13,6 +13,7 @@ FROM info_silver.tb_crm_tel_record a
       JOIN
     (SELECT user_id as id2, ia_id, create_time
      FROM silver_consult.tb_crm_dispatch_his@consul_std
+      group by user_id, ia_id, create_time
     ) C
       ON b.user_id= C.id2 AND b.mindate = C.create_time
   ) dd
@@ -25,16 +26,15 @@ WHERE a.ia_id = 540 and dd.ia_id=540
 
 
 
-select * from silver_consult.tb_crm_dispatch_his@consul_std where user_id= 1000601464
-select * from info_silver.tb_crm_tel_record where user_id=1000601464
-
-
+select * from silver_consult.tb_crm_dispatch_his@consul_std  where user_id=1000600538
+select * from info_silver.tb_crm_tel_record where user_id=1000600538
 
 
 
 
 
 select * from silver_consult.tb_crm_dispatch_his@consul_std where user_id=1000597745
+
 
 select * from info_silver.tb_crm_tel_record
   where user_id = 1000598764
@@ -47,7 +47,8 @@ select * from info_silver.tb_crm_tel_record
 
 
 
-
+select count(*)/(count(distinct ia_id)) from info_silver.tb_crm_user where ia_name is not null and ia_name not like '%资源%' and ia_name not like '%共享%'
+and  group_id in(2,3,4,5,6,9,10,11,12,105,106,112,113,114)
 
 
 
