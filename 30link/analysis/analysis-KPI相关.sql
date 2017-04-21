@@ -286,9 +286,27 @@ and a.firmid not IN
 
 
 
+/*有效新入金人数*/
+select count(distinct case when to_char(bbb.date1,'yyyymm') = '201612' then bbb.id end) from
+  (select aaa.firm_id id, min(aaa.realdate) as date1
+  from
+  (select suba.firmid as firm_id, suba.realdate as realdate, sum(subb.summoney) as money
+  from
+  (select firmid, realdate FROM silver_njs.history_transfer@silver_std where partnerid='pmec') suba
+  left JOIN
+  (select firmid, (case when inorout='A' then inoutmoney when inorout='B' then (-1)*inoutmoney end) as summoney, realdate
+  from silver_njs.history_transfer@silver_std where partnerid='pmec') subb
+  on suba.firmid=subb.firmid and suba.realdate>=subb.realdate
+
+  group by suba.firmid, suba.realdate) aaa
+  where aaa.money >=50 group by aaa.firm_id) bbb;
 
 
-select sum(b.contqty)
+
+
+
+
+select count(distinct a.firmid),sum(b.contqty)
   from
     (SELECT
        firmid,
@@ -300,40 +318,41 @@ select sum(b.contqty)
     )a
     join info_silver.ods_history_deal b
     on a.firmid=b.firmid
-    and b.fdate between 20170101 and 20170131 /*交易时间*/
+    and substr(b.fdate,1,6) = '201703' /*交易时间*/
 where
-  to_char(a.mindate, 'yyyymmdd') < 20170101 /*首次入金时间*/
+  to_char(a.mindate, 'yyyymm') = '201612' /*首次入金时间*/
 AND
     (a.firmid NOT IN
      (SELECT firm_id
       FROM info_silver.ods_crm_transfer_record
       WHERE process IN (5, 6) AND valid = 1
-            AND to_char(submit_time, 'yyyymmdd') < 20170101) /*流转时间*/
-    )
+            AND to_char(submit_time, 'yyyymm') < '201704') /*流转时间*/
+    );
 
 
 
 
 
-select sum(b.contqty)
+
+select count(distinct a.firmid),sum(b.contqty)
   from
     (SELECT
        firmid,
        min(CASE WHEN inorout = 'A'
          THEN realdate END) AS mindate
-     FROM silver_njs.history_transfer@silver_std                           --2016年有入金且2017年1月开单用户流转后交易额（需扣除）
+     FROM silver_njs.history_transfer@silver_std                           --2016年有入金且2017年1月开单用户流转前交易额
      WHERE partnerid = 'pmec'
       GROUP BY firmid
     )a
     join info_silver.ods_history_deal b
     on a.firmid=b.firmid
-    and b.fdate between 20170101 and 20170131 /*交易时间*/
+    and substr(b.fdate,1,6) = '201612'           /*交易时间*/
     join info_silver.ods_crm_transfer_record c
-      on a.firmid=c.firm_id
-    and to_char(c.submit_time,'yyyymmdd') between 20170101 and 20170131 /*流转时间*/
+      on a.firmid=c.firm_id and c.process in (5,6) and c.valid=1
+    and to_char(c.submit_time,'yyyymm') = '201612'/*流转时间*/
 where
-  to_char(a.mindate, 'yyyymmdd') < 20170101 /*首次入金时间*/
-and c.submit_time < b.trade_time
+  to_char(a.mindate, 'yyyymm') = '201612'         /*首次入金时间*/
+and c.submit_time > b.trade_time;
 
 
 
@@ -422,11 +441,81 @@ and b.trade_time < c.submit_time
 
 
 
+
+
+
+/* 有效新入金口径互联网用户各月份交易额 */
+select count(distinct a.firmid),sum(b.contqty),to_char(a.mindate, 'yyyymm')
+  from
+    (select aaa.firmid, min(aaa.realdate) as mindate
+  from
+  (select suba.firmid as firmid, suba.realdate as realdate, sum(subb.summoney) as money
+  from
+  (select firmid, realdate FROM silver_njs.history_transfer@silver_std where partnerid='pmec') suba
+  left JOIN
+  (select firmid, (case when inorout='A' then inoutmoney when inorout='B' then (-1)*inoutmoney end) as summoney, realdate
+  from silver_njs.history_transfer@silver_std where partnerid='pmec') subb
+  on suba.firmid=subb.firmid and suba.realdate>=subb.realdate
+
+  group by suba.firmid, suba.realdate) aaa
+  where aaa.money >=50 group by aaa.firmid
+    )a
+    join info_silver.ods_history_deal b
+    on a.firmid=b.firmid
+    and substr(b.fdate,1,6) = '201609' /*交易时间*/
+AND
+    (a.firmid NOT IN
+     (SELECT firm_id
+      FROM info_silver.ods_crm_transfer_record
+      WHERE process IN (5, 6) AND valid = 1
+            AND to_char(submit_time, 'yyyymm') < '201610') /*流转时间*/
+    )
+group by to_char(a.mindate, 'yyyymm');
+
+
+
+
+
+select count(distinct a.firmid),sum(b.contqty),to_char(a.mindate, 'yyyymm')
+  from
+    (select aaa.firmid, min(aaa.realdate) as mindate
+  from
+  (select suba.firmid as firmid, suba.realdate as realdate, sum(subb.summoney) as money
+  from
+  (select firmid, realdate FROM silver_njs.history_transfer@silver_std where partnerid='pmec') suba
+  left JOIN
+  (select firmid, (case when inorout='A' then inoutmoney when inorout='B' then (-1)*inoutmoney end) as summoney, realdate
+  from silver_njs.history_transfer@silver_std where partnerid='pmec') subb
+  on suba.firmid=subb.firmid and suba.realdate>=subb.realdate
+
+  group by suba.firmid, suba.realdate) aaa
+  where aaa.money >=50 group by aaa.firmid
+    )a
+    join info_silver.ods_history_deal b
+    on a.firmid=b.firmid
+    and substr(b.fdate,1,6) = '201609'                           /*交易时间*/
+    join info_silver.ods_crm_transfer_record c
+      on a.firmid=c.firm_id and c.process in (5,6) and c.valid=1
+    and to_char(c.submit_time,'yyyymm') = '201609'               /*流转时间*/
+
+and c.submit_time > b.trade_time
+group by to_char(a.mindate, 'yyyymm') ;                          /*首次入金时间*/
+
+
+
+
+
+
+
+
+
+
+
 select * from info_silver.pmec_zj_flow
 
 
 
-select count(distinct a.firmid)
+select count(distinct a.firmid),to_char(a.mindate,'yyyymm')
   from
     (SELECT
        firmid,
@@ -436,7 +525,7 @@ select count(distinct a.firmid)
      WHERE partnerid = 'pmec'
       GROUP BY firmid
     )a
-where to_char(a.mindate,'yyyymmdd')  between 20170201 and 20170228
+group by  to_char(a.mindate,'yyyymm')
 
 
 
@@ -449,16 +538,25 @@ select * from info_silver.ods_crm_transfer_record
 
 
 /* 各月份投顾人数 */
-select distinct c.firm_id from info_silver.ods_crm_transfer_record c
-where  to_char(c.submit_time,'yyyymm') = 201703 /*流转时间*/
+select distinct c.fname from info_silver.ods_crm_transfer_record c
+where  to_char(c.submit_time,'yyyymm') = 201701 /*流转时间*/
    and c.process in (5,6) and c.valid=1
- and c.bgroup_id in (1,7,8)
+ and c.fgroup_id in (112,113,114,106)
 
 select * from info_silver.ods_crm_transfer_record where fia_id=154
 
-select * from info_silver.tb_crm_ia where status=1 and group_id in (106,112,113,114) and name not like '%资源%'
+select * from info_silver.tb_crm_ia where group_id in (106,112,113,114) and name not like '%资源%' and name='张嘉楠'
 
-select * from info_silver.ods_crm_transfer_record
+SELECT
+  count(DISTINCT fia_id),
+  sum(pmec_net_value_sub + pmec_net_in_sub),
+  sum(pmec_net_value_sub + pmec_net_in_sub) / count(DISTINCT fia_id),
+  count(DISTINCT id)
+FROM info_silver.ods_crm_transfer_record
+WHERE to_char(submit_time, 'yyyymm') = 201704
+      --and fgroup_id in (112,113,114,106)
+      AND fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105)
+
 
 
 

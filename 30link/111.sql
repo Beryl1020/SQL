@@ -38,9 +38,16 @@ SELECT *
 FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_fund_fact_d
-WHERE partner_id = 'pmec'
+
 SELECT *
 FROM info_silver.pmec_zj_flow
+SELECT *
+FROM info_silver.edw_user_fact_d
+SELECT *
+FROM info_silver.dw_user_account
+
+
+
 
 
 

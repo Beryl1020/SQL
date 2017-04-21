@@ -13,7 +13,7 @@ select * from silver_njs.history_transfer@silver_std where firmid=16689441
 
 
 select * from
-  tb_account_detail@SILVER_STAT_URS_30_LINK
+  info_silver.tb_account_detail
   where operation_id in
         (
           SELECT concat(substr(fdate, 1, 6), bankwaterid) AS num

@@ -3,7 +3,8 @@
 select sum(pmec_net_value_sub+pmec_net_in_sub) from info_silver.ods_crm_transfer_record
 where  to_char(submit_time,'yyyymm')=201703
 and valid=1 and process in(5,6)
-and bgroup_id in(111)
+and bgroup_id in(111);
+
 
 /* 电销交易额*/
 
@@ -15,7 +16,19 @@ from info_silver.ods_crm_transfer_record a
   and b.fdate between 20170301 and 20170331
 where  to_char(a.submit_time,'yyyymm') between 201701 and 201703
 and a.valid=1 and a.process in(5,6)
-and a.bgroup_id in(1,7,8)
+and a.bgroup_id in(1,7,8);
+
+
+select * from INFO_SILVER.ODS_CRM_TRANSFER_RECORD a
+where to_char(a.SUBMIT_TIME,'yyyymmdd') between 20160901 and 20170431;
+
+
+
+
+
+
+
+select DISTINCT FIA_ID FROM info_silver.ods_crm_transfer_record where  to_char(submit_time,'yyyymm')= 201703  AND fgroup_id in (2,3,4,5,6,9,10,11,12,105) and process in (5,6)
 
 /* 16年留底资金投顾交易额*/
 
