@@ -38,6 +38,14 @@ group by b.crm_user_id AS CRM系统ID,
   e.group_id
 
 
+select * from info_silver.DM_CRM_TRANSFER_STAT where group_id in (1,7,8)
+
+SELECT *
+FROM silver_njs.tb_silver_data_center@silver_std
+WHERE hdate = 20170421 AND firmid = 163000000398396
+
+
+
 
 
 

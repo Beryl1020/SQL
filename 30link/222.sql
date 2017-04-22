@@ -125,7 +125,7 @@ group by to_char(a.mindate, 'yyyymm') ;                          /*首次入金�
 
 
 
-
+select * from silver_consult.DM_IA_USER_TRANSFER_STAT@consul_std
 
 select * from info_silver.ods_history_deal where firmid='163000000071516'
 select * from silver_njs.history_transfer@silver_std  where firmid='163000000071516'
