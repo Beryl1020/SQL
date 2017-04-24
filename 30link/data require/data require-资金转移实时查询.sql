@@ -26,7 +26,7 @@ SELECT
   count(DISTINCT CASE WHEN aaa.id2 IS NOT NULL
     THEN aaa.id2 END),
   sum(aaa.net_assets),
-  sum(aaa.net_assets) - sum(aaa.pmec_net_in),
+  sum(aaa.net_assets) + sum(aaa.pmec_net_in),
   sum(aaa.netinmoney)
 FROM
   (
@@ -74,6 +74,7 @@ FROM
   ) aaa;
 
 
+
 SELECT sum(last_capital)
 FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
 WHERE to_char(trade_date, 'yyyymmdd') = 20170421;
@@ -84,3 +85,9 @@ WHERE to_char(trade_date, 'yyyymmdd') > 20170421
 
 SELECT sum()
 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
+
+select * from silver_consult.tb_crm_transfer_record@consul_std
+ where to_char(submit_time,'yyyymmdd') = 20170424
+
+
+select * from NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT where fund_id='163170424584314'
