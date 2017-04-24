@@ -11,7 +11,7 @@ order by refer_1_type,refer_2_type
 
 
 
-
+-- 每日广贵开户数
 
 select a.refer_1_type,a.refer_2_type, to_char(b.open_account_time,'yyyymmdd'),                                           --一周新开户用户来源                                                            --7天内每日开户用户来源
   count(distinct b.firm_id) as 用户数
@@ -21,7 +21,7 @@ join tb_silver_user_stat@silver_std b
     and a.partner_id='pmec'
  -- and a.refer_1_type is not null
 where to_char(b.open_account_time,'yyyymmdd')
-between to_char(sysdate-7,'yyyymmdd') and to_char(sysdate-1,'yyyymmdd')
+between 20170401 and 20170421
 group by a.refer_1_type,a.refer_2_type, to_char(b.open_account_time,'yyyymmdd')
 order by to_char(b.open_account_time,'yyyymmdd')
 
@@ -31,6 +31,7 @@ order by to_char(b.open_account_time,'yyyymmdd')
 
 
 
+--每日广贵有效新入金
 
 
 select to_char(bbb.date1,'yyyymmdd'),his.refer_1_type,his.refer_2_type,count(bbb.id)
@@ -49,7 +50,7 @@ from
   where aaa.money >=50 group by aaa.firm_id) bbb
   join info_silver.dw_user_account his
   on bbb.id=his.firm_id
-where to_char(bbb.date1,'yyyymmdd') between 20170401 and 20170407
+where to_char(bbb.date1,'yyyymmdd') between 20170401 and 20170421
   and his.refer_1_type is not null
 group by to_char(bbb.date1,'yyyymmdd'),his.refer_1_type,his.refer_2_type
 

@@ -134,5 +134,10 @@ SELECT *
 FROM silver_njs.tb_silver_data_center@silver_std where  firmid='163000000071516'
 
 
+select * fROM  NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
+
+select * fROM info_silver.ods_history_deal where partner_id='hht' and substr(fdate,1,6) ='201704'
+
+
 
 
