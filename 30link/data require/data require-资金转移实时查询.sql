@@ -12,8 +12,7 @@ SELECT
   sum(a.hht_netvalue)       AS 龙商现资产
 FROM info_silver.DM_CRM_TRANSFER_STAT a
 WHERE sale_type NOT IN ('all')
-GROUP BY a.sale_type, a.group_type,
-  a.group_id, a.group_name
+GROUP BY a.sale_type, a.group_type, a.group_id, a.group_name
 
 UNION ALL
 
@@ -75,16 +74,17 @@ FROM
 
 
 
+
+
 SELECT sum(last_capital)
 FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
 WHERE to_char(trade_date, 'yyyymmdd') = 20170421;
+
 
 SELECT sum(charge_amount)
 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
 WHERE to_char(trade_date, 'yyyymmdd') > 20170421
 
-SELECT sum()
-FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
 
 select * from silver_consult.tb_crm_transfer_record@consul_std
  where to_char(submit_time,'yyyymmdd') = 20170424
