@@ -71,14 +71,15 @@ group by a.fa_id, a.firm_id,a.cur_bia_id,a.cur_bgroup_id
 
 
 
-select c.id,c.group_id,b.firm_id,sum(case when g.inorout='A' then g.inoutmoney when g.inorout='B' then g.inoutmoney*(-1) end)
+select-- c.id,c.group_id,b.firm_id,
+sum(case when g.inorout='A' then g.inoutmoney when g.inorout='B' then g.inoutmoney*(-1) end)
   from silver_njs.history_transfer@silver_std g
     join info_silver.dw_user_account b
     on g.firmid=b.firm_id
-    join info_silver.tb_crm_ia c
-    on b.ia_id=c.id
-where g.fdate = to_char(sysdate-1,'yyyymmdd') and g.partnerid='pmec' and c.group_id in (1,7,8)
-group by b.firm_id,c.id,c.group_id
+    --join info_silver.tb_crm_ia c
+    --on b.ia_id=c.id
+where g.fdate = to_char(sysdate-1,'yyyymmdd') and g.partnerid='pmec' and b.group_id in (1,7,8)
+--group by b.firm_id,c.id,c.group_id
 
 
 

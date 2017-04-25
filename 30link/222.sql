@@ -138,6 +138,22 @@ select * fROM  NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
 
 select * fROM info_silver.ods_history_deal where partner_id='hht' and substr(fdate,1,6) ='201704'
 
+SELECT aaa.user_id,aaa.firm_id,aaa.id1,aaa.id2
+FROM (
+       SELECT
+         a.user_id,
+         a.firm_id,
+         a.ia_id as id1,
+         a.ia_name,
+         b.ia_id as id2,
+         (CASE WHEN a.group_id - b.group_id <> 0
+           THEN a.group_id - b.group_id END) AS t
+       FROM info_silver.dw_user_account a
+         JOIN info_silver.tb_crm_user b ON a.crm_user_id = b.id
+     ) aaa
+WHERE aaa.t IS NOT NULL
+
+
 
 
 

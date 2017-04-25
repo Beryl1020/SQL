@@ -19,8 +19,8 @@ FROM
          firm_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-         --user_name = 'roynicfan@163.com'
-         user_id=41887740
+         --user_name = 'm13531265375@163.com'
+         user_id=221130808
          AND partner_id = 'pmec'
       ) a
       LEFT JOIN
@@ -32,4 +32,4 @@ FROM
   LEFT JOIN silver_consult.tb_crm_ia@consul_std b
     ON a.ia_id = b.id;
 
-select * from silver_consult.tb_crm_tel_record@consul_std where user_id=6403991
+select * from silver_consult.tb_crm_tel_record@consul_std where user_id=221130808
