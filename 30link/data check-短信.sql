@@ -93,3 +93,5 @@ where to_char(trade_Date,'yyyymmdd')= to_char(sysdate-1,'yyyymmdd') ;
 select max(trade_Date) from info_silver.tb_nsip_t_filled_order
 where to_char(trade_Date)= to_char(sysdate-1,'yyyymmdd')
 
+select * from info_silver.tb_nsip_t_filled_order a
+

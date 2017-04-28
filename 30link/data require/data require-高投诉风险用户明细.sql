@@ -39,3 +39,6 @@ WHERE aaa.amount <= -10000 AND
 select * from info_silver.pmec_zj_flow where loginaccount=163000000000761
 and changetype in (9,10)
 
+
+select a. from info_silver.pmec_zj_flow a
+

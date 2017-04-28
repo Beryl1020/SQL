@@ -21,8 +21,8 @@ FROM
          partner_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-          user_name = 'm15016827967_1@163.com'
-         --user_id=2132603
+          --user_name = 'm15016827967_1@163.com'
+         user_id=20263013
 
          --AND partner_id = 'pmec'
       ) a

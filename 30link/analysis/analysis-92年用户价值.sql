@@ -19,12 +19,13 @@ select aa.date1,sum(aa.开户人数),sum(aa.开户30天净入金) from          
     and to_char(c.OPEN_ACCOUNT_TIME,'yyyymmdd')>='20170101'
   group by substr(a.birth_day,1,4),c.user_id) aa
  left join
-(select user_id,sum(worksec) as worksec from info_silver.tb_crm_tel_record group by user_id) bb
+(select user_id,sum(worksec) as worksec from info_silver.pmec_zj_flow  group by user_id) bb
 on aa.user_id=bb.user_id
 where bb.worksec is null or bb.worksec=0
 group by aa.date1
 
-select
+
+
 
 
 
