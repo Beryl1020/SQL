@@ -6,10 +6,11 @@ SELECT
   count(DISTINCT CASE WHEN a.pmec_firmid IS NOT NULL
     THEN a.pmec_firmid END) AS 广贵用户数,
   count(DISTINCT CASE WHEN a.hht_firmid IS NOT NULL
-    THEN hht_firmid END)    AS 龙商开户数,
+    THEN a.hht_firmid END)    AS 龙商开户数,
   sum(a.pmec_netvalue_21)   AS 广贵21日净资产,
   sum(a.pmec_netvalue)      AS 广贵现资产,
   sum(a.hht_netvalue)       AS 龙商现资产,
+  sum(c.netinmoney)  AS 龙商本周净入金,
   sum(-b.netin) as 广贵本周出金量
 FROM info_silver.DM_CRM_TRANSFER_STAT a
   left join
@@ -18,6 +19,15 @@ FROM info_silver.DM_CRM_TRANSFER_STAT a
      where fdate >=20170424 and partnerid='pmec'
   group by firmid) b
   on a.pmec_firmid = b.firmid
+  left join
+   (SELECT
+                 fund_id,
+                   sum(charge_amount) AS netinmoney
+                 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
+                 WHERE to_char(trade_date,'yyyymmdd') > 20170422
+                       AND ORDER_STATUS = 3 AND RECONC_STATUS = 2
+                 GROUP BY fund_id) c
+        ON a.hht_firmid = c.fund_id
 WHERE a.sale_type NOT IN ('all')
 GROUP BY a.sale_type, a.group_type, a.group_id, a.group_name
 
@@ -33,8 +43,9 @@ SELECT
     THEN aaa.id2 END) AS 龙商开户数,
   sum(aaa.asset21) AS 广贵21日净资产,
   sum(aaa.asset1) + sum(aaa.netin1) AS 广贵现资产,
-  sum(aaa.netinmoney) AS 龙商现资产,
-  -sum(aaa.netinall) as 广贵本周出金量
+  sum(nvl(aaa.hht前日净资产,0)+nvl(aaa.hht当日净入金,0)) as 龙商现资产,
+  sum(aaa.netinmoney) AS 龙商本周净入金,
+  -sum(aaa.广贵本周总入金) as 广贵本周出金量
 FROM
   (
     SELECT DISTINCT
@@ -43,8 +54,10 @@ FROM
       c.pmec_net_in as netin1,
       d.netinmoney,
       e.firmid  AS id2,
-      g.pmec_net_in as netinall,
-      f.net_assets as asset1
+      g.pmec_net_in as 广贵本周总入金,
+      f.net_assets as asset1,
+      h.hhtnetin as hht当日净入金,
+      i.hhtasset as hht前日净资产
     FROM
       (SELECT
          a.firm_id,
@@ -103,10 +116,27 @@ FROM
        LEFT JOIN     /*广贵昨日净资产*/
         (SELECT
                    firmid,
-                   net_assets
-                 FROM silver_njs.tb_silver_data_center@silver_std
-                 WHERE hdate = to_char(sysdate-1,'yyyymmdd')) f
-        ON a.firm_id = f.firmid
+           net_assets
+         FROM silver_njs.tb_silver_data_center@silver_std
+         WHERE hdate = to_char(sysdate - 1, 'yyyymmdd')) f
+          ON a.firm_id = f.firmid
+        LEFT JOIN    /*龙商当日净入金*/
+        (SELECT
+           fund_id,
+           sum(charge_amount) AS hhtnetin
+         FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
+         WHERE to_char(trade_date, 'yyyymmdd') > to_char(sysdate - 1, 'yyyymmdd')
+           AND ORDER_STATUS = 3 AND RECONC_STATUS = 2
+         GROUP BY fund_id) h
+          ON e.firmid = h.fund_id
+        LEFT JOIN   /*龙商昨日净资产*/
+        (SELECT
+           fund_id,
+           sum(last_capital) AS hhtasset
+         FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
+         WHERE to_char(trade_date, 'yyyymmdd') = to_char(SYSDATE - 1, 'yyyymmdd')
+         GROUP BY fund_id) i
+          ON e.firmid = i.fund_id
     WHERE b.net_assets > 0
   ) aaa;
 

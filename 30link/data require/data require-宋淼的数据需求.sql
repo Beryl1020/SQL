@@ -234,7 +234,9 @@ FROM
         sum(last_capital) AS hhtasset
       FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
       WHERE to_char(trade_date, 'yyyymmdd') = to_char(SYSDATE - 1, 'yyyymmdd')
-      GROUP BY fund_id) b                                                               --HHT前日净资产
+        AND ORDER_STATUS = 3 AND RECONC_STATUS = 2
+      GROUP BY fund_id
+     ) b                                                               --HHT前日净资产
        ON A.fund_id = b.fund_id
   ) aaa
 WHERE aaa.hhtfirmid in ('163170422409510','163170424184370','163170424819990','163170424386918','163170424994553','163170425019866','163170424315048')

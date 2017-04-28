@@ -155,5 +155,17 @@ WHERE aaa.t IS NOT NULL
 
 
 
+SELECT
+                 --a.fund_id,
+                   sum(charge_amount) AS netinmoney,to_char(a.trade_date,'yyyymmdd')
+                 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT a
+                   join tb_silver_user_stat@silver_std b
+                   on a.fund_id = b.firm_id
+                 WHERE to_char(a.trade_date,'yyyymmdd') > 20170422
+                       AND a.ORDER_STATUS = 3 AND a.RECONC_STATUS = 2 group by to_char(a.trade_date,'yyyymmdd')
+                -- GROUP BY a.fund_id
+
+
+
 
 
