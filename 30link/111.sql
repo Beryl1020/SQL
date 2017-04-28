@@ -7,9 +7,9 @@ FROM info_silver.ods_history_deal                     --3
 SELECT *
 FROM silver_njs.pmec_zj_flow@silver_std               --4
 SELECT *
-FROM silver_njs.tb_silver_data_center@silver_std      --5
+FROM silver_njs.tb_silver_data_center@silver_std      --资产表
 SELECT *
-FROM silver_njs.history_transfer@silver_std           --6
+FROM silver_njs.history_transfer@silver_std           --出入金表
 SELECT *
 FROM silver_consult.v_tb_crm_user@consul_std          --7
 SELECT *
@@ -17,7 +17,7 @@ FROM info_silver.tb_crm_user                          --8
 SELECT *
 FROM silver_consult.tb_crm_transfer_record@consul_std --9
 SELECT *
-FROM info_silver.ods_crm_transfer_record              --10
+FROM info_silver.ods_crm_transfer_record              --流转单表
 SELECT *
 FROM silver_consult.tb_crm_tel_record@consul_std      --11
 SELECT *
@@ -44,8 +44,18 @@ FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_user_fact_d
 SELECT *
-FROM info_silver.dw_user_account
-
+FROM info_silver.dw_user_account                                 --史上最全user表
+SELECT *
+FROM silver_njs.pmec_account_info@silver_std
+SELECT *
+FROM info_silver.ods_crm_user
+SELECT *
+FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT --HHT净资产
+SELECT *
+FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT --HHT净入金
+SELECT *
+FROM info_silver.tb_nsip_t_filled_order
+WHERE trader_id = 163170316374525
 
 
 

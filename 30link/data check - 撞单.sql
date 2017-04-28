@@ -6,6 +6,7 @@ FROM
   (
     SELECT
       a.user_id,
+      a.partner_id,
       a.open_account_time,
       b.user_name,
       b.id,
@@ -16,20 +17,22 @@ FROM
       (SELECT
          user_id,
          open_account_time,
-         firm_id
+         firm_id,
+         partner_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-         --user_name = 'm13531265375@163.com'
-         user_id=221130808
-         AND partner_id = 'pmec'
+          --user_name = 'pp95211314@163.com'
+         user_id=2132603
+
+         --AND partner_id = 'pmec'
       ) a
       LEFT JOIN
       silver_consult.v_tb_crm_user@consul_std b
         ON a.user_id = b.fa_id
       LEFT JOIN silver_consult.tb_crm_tel_record@consul_std c
         ON b.id = c.user_id AND worksec > 0
-    GROUP BY a.user_id, a.open_account_time, b.fa_id, b.id, a.firm_id, b.ia_id, b.user_name) a
+    GROUP BY a.partner_id,a.user_id, a.open_account_time, b.fa_id, b.id, a.firm_id, b.ia_id, b.user_name) a
   LEFT JOIN silver_consult.tb_crm_ia@consul_std b
     ON a.ia_id = b.id;
 
-select * from silver_consult.tb_crm_tel_record@consul_std where user_id=221130808
+select * from silver_consult.tb_crm_tel_record@consul_std where user_id=49748599
