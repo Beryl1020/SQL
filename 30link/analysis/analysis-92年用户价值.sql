@@ -24,7 +24,7 @@ on aa.user_id=bb.user_id
 where bb.worksec is null or bb.worksec=0
 group by aa.date1
 
-
+select
 
 
 
