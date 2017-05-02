@@ -7,9 +7,9 @@ FROM info_silver.ods_history_deal                     --3
 SELECT *
 FROM silver_njs.pmec_zj_flow@silver_std               --4
 SELECT *
-FROM silver_njs.tb_silver_data_center@silver_std      --资产表
+FROM silver_njs.tb_silver_data_center@silver_std    --资产表
 SELECT *
-FROM silver_njs.history_transfer@silver_std           --出入金表
+FROM silver_njs.history_transfer@silver_std    where fdate = 20170502        --出入金表
 SELECT *
 FROM silver_consult.v_tb_crm_user@consul_std          --7
 SELECT *
@@ -55,7 +55,12 @@ SELECT *
 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT --HHT净入金
 SELECT *
 FROM info_silver.tb_nsip_t_filled_order
-WHERE trader_id = 163170316374525
+
+select * from info_silver.tb_silver_account
+
+select * from NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE
+select * from NSIP_MARKET.TB_NSIP_Q_COMMODITY_DETAIL@LINK_NSIP_MARKET
+select * from NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
 
 
 
