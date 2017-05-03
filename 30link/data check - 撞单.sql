@@ -21,8 +21,8 @@ FROM
          partner_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-          --user_name = 'leaiqy@163.com'
-         user_id=91776312
+          user_name = 'm18607514365@163.com'
+         --user_id=1000632877
 
          --AND partner_id = 'pmec'
       ) a
@@ -35,4 +35,13 @@ FROM
   LEFT JOIN silver_consult.tb_crm_ia@consul_std b
     ON a.ia_id = b.id;
 
-select * from silver_consult.tb_crm_tel_record@consul_std where user_id=1000290258  and worksec>0
+select * from silver_consult.tb_crm_tel_record@consul_std where user_id=1000583300  and worksec>0
+
+
+SELECT *
+FROM silver_consult.tb_crm_ia@consul_std   where name in ('李双标','曹明新','刘立超')
+
+
+
+
+

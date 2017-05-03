@@ -54,13 +54,16 @@ FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT --HHT净资产
 SELECT *
 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT --HHT净入金
 SELECT *
-FROM info_silver.tb_nsip_t_filled_order
+FROM info_silver.tb_nsip_t_filled_order where to_char(trade_time,'yyyymmdd')=20170427
 
-select * from info_silver.tb_silver_account
+select * from info_silver.tb_silver_account where to_char(trade_time,'yyyymmdd')=20170426
+
 
 select * from NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE
-select * from NSIP_MARKET.TB_NSIP_Q_COMMODITY_DETAIL@LINK_NSIP_MARKET
+
+
 select * from NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
+select * from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
 
 
 

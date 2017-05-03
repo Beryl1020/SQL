@@ -168,4 +168,56 @@ SELECT
 
 
 
+SELECT
+  a.refer_1_type as 内外推,
+  a.sub_refer as 渠道号,
+  count(distinct a.firm_id) as 广贵21日用户数,
+  count(case when b.firm_id is not null then b.firm_id end) as hht开户用户数,
+  sum(c.net_assets) as pmec21日净资产,
+  sum(case when b.firm_id is not null then d.hhtasset end) as hht昨日净资产,
+  sum(e.net_assets) as pmec昨日净资产
+FROM
+  (SELECT
+
+     DISTINCT
+     user_id,
+     firm_id,
+     refer_1_type,
+     sub_refer
+   FROM info_silver.dw_user_account
+   WHERE to_char(open_account_time, 'yyyymmdd') <= 20170421 AND partner_id = 'pmec') a
+  LEFT JOIN
+  (SELECT DISTINCT
+     user_id,
+     firm_id
+   FROM info_silver.dw_user_account
+   WHERE partner_id = 'hht'
+  and to_char(open_account_time, 'yyyymmdd') <= to_char(sysdate - 1, 'yyyymmdd')) b
+    ON a.user_id = b.user_id
+  LEFT JOIN
+  (SELECT
+     firmid,
+     net_assets
+   FROM silver_njs.tb_silver_data_center@silver_std
+   WHERE hdate = 20170421) c
+    ON a.firm_id = c.firmid
+  LEFT JOIN
+  (SELECT
+     fund_id,
+     sum(last_capital) AS hhtasset
+   FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
+   WHERE to_char(trade_date, 'yyyymmdd') = to_char(SYSDATE - 1, 'yyyymmdd')
+   GROUP BY fund_id) d
+    ON b.firm_id = d.fund_id
+  LEFT JOIN
+    (SELECT
+     firmid,
+     net_assets
+   FROM silver_njs.tb_silver_data_center@silver_std
+   WHERE hdate = to_char(sysdate - 1, 'yyyymmdd')) e
+    on a.firm_id = e.firmid
+group by a.sub_refer,a.refer_1_type
+
+
+
 
