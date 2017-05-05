@@ -219,5 +219,11 @@ FROM
 group by a.sub_refer,a.refer_1_type
 
 
+select *
+from silver_consult.tb_crm_transfer_record@consul_std trans
+where to_char(trans.submit_time,'yyyymmdd') between 20170424 and 20170428
+and trans.process in(5,6) and trans.valid=1
+and bia_group_id in (1,7,8,111)
+
 
 

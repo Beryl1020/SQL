@@ -97,9 +97,11 @@ select * from info_silver.tb_nsip_t_filled_order a
 
 
 
+---------------------------------------------------------------------------------------
+
 /* HHT昨日开户 */
 select partner_id,count(distinct firm_id) from tb_silver_user_stat@silver_std
-where to_char(open_account_time, 'yyyymmdd')=to_char(sysdate-1,'yyyymmdd')
+where to_char(open_account_time, 'yyyymmdd') between
   and partner_id = 'hht'
 group by partner_id;
 
@@ -161,7 +163,7 @@ sum(case when io.inorout='A' then inoutmoney when io.inorout='B' then (-1)*inout
 select
 sum(deal.CONTQTY) as money -- 总交易额
    from info_silver.ods_history_deal deal
-   where deal.partner_id='pmec' and deal.fdate = to_char(sysdate - 1, 'yyyymmdd')
+   where deal.partner_id='hht' and deal.fdate = to_char(sysdate - 1, 'yyyymmdd')
 
 /* HHT昨日点差*/
 select
@@ -173,6 +175,7 @@ sum( deal.contnum*8) as money -- 点差
 SELECT sum(weight*8)
 FROM info_silver.tb_nsip_t_filled_order
 where to_char(trade_date,'yyyymmdd') = to_char(sysdate - 1, 'yyyymmdd')
+and status =1
 
 
 
@@ -214,3 +217,135 @@ SELECT FEE + CLOSE_PL + TODAY_SETTLE_PL + CURRENT_DELAY_FEE AS HHTPROFIT,
 
 
 select * from NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
+
+
+---------------------------------------------------------------------------------------
+/*投顾短信-当日开单*/
+select count(distinct user_id) from silver_consult.tb_crm_transfer_record@consul_std
+where to_char(submit_time,'yyyymmdd') = to_char(sysdate-1,'yyyymmdd')
+and process in (5,6) and valid = 1 and bia_group_id in (1,7,8,111)
+/*投顾短信-当周开单*/
+select count(distinct user_id) from silver_consult.tb_crm_transfer_record@consul_std
+where to_char(submit_time,'yyyymmdd') between 20170501 and 20170504
+and process in (5,6) and valid = 1 and bia_group_id in (1,7,8,111)
+
+/*激活资金*/
+select sum(nvl(aa.money1,0)+nvl(aa.money2,0))
+  from
+(
+select a.user_id,avg(case when c.net_zcmoney is not null then c.net_zcmoney  end) as money1,
+                 sum(case when d.inoutmoney is not null and d.inorout='A' then d.inoutmoney
+                     when d.inoutmoney is not null and d.inorout='B' then -d.inoutmoney end) as money2
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+  and b.partner_id = 'hht'
+left join info_silver.ods_order_zcmoney c
+  on b.firm_id = c.firm_id
+  and c.fdate = to_char(a.submit_time-3,'yyyymmdd')
+  left join silver_njs.history_transfer@silver_std d
+  on b.firm_id = d.firmid
+  and d.fdate = to_char(a.submit_time,'yyyymmdd')
+  and d.realdate < a.submit_time
+where
+ a.process in (5,6) and a.valid = 1
+and a.bia_group_id in (1,7,8,111)
+  and to_char(a.submit_time,'yyyymmdd') between '20170501' and '20170501'
+group by a.user_id) aa
+
+
+select * from silver_consult.tb_crm_transfer_record@consul_std where user_id =1000533062
+select * from info_silver.ods_order_zcmoney where firm_id = '163170425136383'
+select firm_id from info_silver.dw_user_account where crm_user_id = '1000533062'
+
+
+/*后端净入金*/
+select sum(case when c.inorout='A' then inoutmoney when c.inorout='B' then -inoutmoney end)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+  and b.partner_id = 'hht'
+join silver_njs.history_transfer@silver_std c
+  on b.firm_id = c.firmid
+and c.realdate > a.submit_time
+where a.process in(5,6) and a.valid =1 and a.bia_group_id in (1,7,8,111)
+and c.fdate between 20170501 and 20170504
+and b.group_id in (1,7,8,111)
+
+/*后端总维护用户数*/
+
+select count(distinct a.user_id)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+  and b.partner_id = 'hht'
+where a.process in(5,6) and a.valid =1 and a.bia_group_id in (1,7,8,111)
+and b.group_id in (1,7,8,111)
+
+/*后端总维护用户交易额*/
+select sum(c.contqty)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+ and b.partner_id = 'hht'
+  join info_silver.ods_history_deal c
+  on b.firm_id = c.firmid
+where a.process in(5,6) and a.valid =1 and a.bia_group_id in (1,7,8,111)
+and b.group_id in (1,7,8,111)
+and c.fdate = 20170504
+
+
+
+/*后端维护过用户数*/
+
+select count(distinct a.user_id)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+  and b.partner_id = 'hht'
+where a.process in(5,6) and a.valid =1
+      and a.bia_group_id in (1,7,8,111)
+
+/*后端维护过用户交易额*/
+
+select sum(c.contqty)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+ and b.partner_id = 'hht'
+  join info_silver.ods_history_deal c
+  on b.firm_id = c.firmid
+where a.process in(5,6) and a.valid =1 and a.bia_group_id in (1,7,8,111)
+and c.fdate = 20170504
+
+
+
+/*后端资金量*/
+
+select sum(c.net_zcmoney)
+from silver_consult.tb_crm_transfer_record@consul_std a
+join info_silver.dw_user_account b
+  on a.user_id=b.crm_user_id
+ and b.partner_id = 'hht'
+  join info_silver.ods_order_zcmoney c
+  on b.firm_id = c.firm_id
+where a.process in(5,6) and a.valid =1 and a.bia_group_id in (1,7,8,111)
+and b.group_id in (1,7,8,111)
+and c.fdate = 20170504
+
+
+
+
+select * from info_silver.SMS_SILVER_CONSULT where to_char(stat_date,'yyyymm')=201705
+
+select * from silver_consult.tb_crm_transfer_record@consul_std where to_char(submit_time,'yyyymmdd') between 20170501 and 20170504
+
+
+select sum(a.net_zcmoney) from info_silver.ods_order_zcmoney a
+join info_silver.dw_user_account b on a.firm_id = b.firm_id where a.fdate=20170504 and a.partner_id='hht' and b.partner_id = 'hht';
+
+
+
+
+
+

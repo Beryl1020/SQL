@@ -65,6 +65,13 @@ select * from NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE
 select * from NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
 select * from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
 
+select * from info_silver.ods_order_zcmoney where partner_id = 'hht' and fdate = '20170503' and firm_id= '163170502814036'
+
+select * from info_silver.edw_fund_fact_d  where to_char(stat_date,'yyyymmdd') = '20170503'
+select * from info_silver.order_fund_silver
+
+
+
 
 
 

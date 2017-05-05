@@ -216,8 +216,8 @@ select sum(weight)*8 from info_silver.tb_nsip_t_filled_order
 where to_char(trade_time-0.25,'yyyymmdd') between 20170401 and 20170431 and
  ((POSITION_DIRECTION = 1 AND POSITION_OPERATION=0) OR (POSITION_DIRECTION = 2 AND POSITION_OPERATION=1))
 
--- 7 滞纳金 5.6 盈亏
+-- 7 滞纳金 -5.-6 盈亏
 
-SELECT sum(trade_price*weight)*0.00065
-FROM info_silver.tb_nsip_t_filled_order
-where to_char(trade_Date,'yyyymmdd')  between 20170401 and 20170431
+SELECT sum(a.trade_price*a.weight)*0.00065
+FROM info_silver.tb_nsip_t_filled_order a
+where to_char(a.trade_Date,'yyyymmdd')  between 20170401 and 20170431
