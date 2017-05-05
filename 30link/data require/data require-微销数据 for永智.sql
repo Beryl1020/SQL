@@ -55,23 +55,24 @@ WHERE trunc(f.submit_time) <= sysdate - 1 AND g.hdate = to_char(sysdate - 1, 'yy
 
 ------------------------------------------------------------------------------------------------------------------------
 SELECT
-  b.user_id                              AS 主站id,
-  b.real_name                            AS 客户姓名,
-  b.ia_id                                AS 投顾id,
-  b.ia_name                              AS 投顾姓名,
-  b.group_id as 投顾组别,
-  a.submit_time                          AS 流转时间,
-  a.hht_net_value_sub + a.hht_net_in_sub AS 激活资金,
+  b.user_id                                                AS 主站id,
+  b.real_name                                              AS 客户姓名,
+  a.fia_id                                                 AS 前端投顾id,
+  c.name                                                   AS 前端投顾姓名,
+  c.group_id                                               AS 前端投顾组别,
+  a.submit_time                                            AS 流转时间,
+  a.hht_net_value_sub + a.hht_net_in_sub                   AS 激活资金,
   aa.后端净入金,
   bb.后端交易额,
-  cc.net_zcmoney                         AS 后端净资产,
+  cc.net_zcmoney                                           AS 后端净资产,
   dd.后端手续费,
-  nvl(ee.后端头寸加点差,0)+nvl(ee.后端滞纳金,0)+nvl(dd.后端手续费,0) as 后端收入
+  nvl(ee.后端头寸加点差, 0) + nvl(ee.后端滞纳金, 0) + nvl(dd.后端手续费, 0) AS 后端收入
 FROM silver_consult.tb_crm_transfer_record@consul_std a
   JOIN info_silver.dw_user_account b
     ON a.user_id = b.crm_user_id
        AND b.partner_id = 'hht' AND a.partnerid = 'hht'
-       AND b.group_id IN (1, 7, 8, 111)
+  JOIN info_silver.tb_crm_ia c ON a.fia_id = c.id
+                                  AND c.group_id IN (112, 113, 114)
   LEFT JOIN
   (SELECT
      a1.user_id,
@@ -83,11 +84,10 @@ FROM silver_consult.tb_crm_transfer_record@consul_std a
      JOIN info_silver.dw_user_account a2
        ON a1.user_id = a2.crm_user_id
           AND a2.partner_id = 'hht' AND a1.partnerid = 'hht'
-          AND a2.group_id IN (1, 7, 8, 111)
      JOIN silver_njs.history_transfer@silver_std a3
        ON a2.firm_id = a3.firmid
           AND a3.realdate > a1.submit_time
-     where a1.valid =1 and a1.process in (5,6)
+   WHERE a1.valid = 1 AND a1.process IN (5, 6)
    GROUP BY a1.user_id) aa
     ON a.user_id = aa.user_id
   LEFT JOIN
@@ -98,11 +98,10 @@ FROM silver_consult.tb_crm_transfer_record@consul_std a
      JOIN info_silver.dw_user_account a2
        ON a1.user_id = a2.crm_user_id
           AND a2.partner_id = 'hht' AND a1.partnerid = 'hht'
-          AND a2.group_id IN (1, 7, 8, 111)
      JOIN info_silver.ods_history_deal a3
        ON a2.firm_id = a3.firmid
           AND a3.trade_time > a1.submit_time
-     where a1.valid =1 and a1.process in (5,6)
+   WHERE a1.valid = 1 AND a1.process IN (5, 6)
    GROUP BY a1.user_id) bb
     ON a.user_id = bb.user_id
   LEFT JOIN
@@ -117,11 +116,10 @@ FROM silver_consult.tb_crm_transfer_record@consul_std a
      JOIN info_silver.dw_user_account a2
        ON a1.user_id = a2.crm_user_id
           AND a2.partner_id = 'hht' AND a1.partnerid = 'hht'
-          AND a2.group_id IN (1, 7, 8, 111)
      JOIN info_silver.tb_nsip_t_filled_order a3
        ON a2.firm_id = a3.trader_id
           AND a3.trade_time > a1.submit_time
-     where a1.valid =1 and a1.process in (5,6)
+   WHERE a1.valid = 1 AND a1.process IN (5, 6)
    GROUP BY a1.user_id) dd
     ON a.user_id = dd.user_id
   LEFT JOIN
@@ -135,15 +133,14 @@ FROM silver_consult.tb_crm_transfer_record@consul_std a
      JOIN info_silver.dw_user_account a2
        ON a1.user_id = a2.crm_user_id
           AND a2.partner_id = 'hht' AND a1.partnerid = 'hht'
-          AND a2.group_id IN (1, 7, 8, 111)
      JOIN NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT a3
        ON a2.firm_id = a3.fund_id
           AND a3.create_time > a1.submit_time
-     where a1.valid =1 and a1.process in (5,6)
+   WHERE a1.valid = 1 AND a1.process IN (5, 6)
    GROUP BY a1.user_id) ee
-  on a.user_id = ee.user_id
+    ON a.user_id = ee.user_id
 WHERE to_char(a.submit_time, 'yyyymmdd') >= '20170424'
-and a.process in (5,6) and a.valid = 1
+      AND a.process IN (5, 6) AND a.valid = 1
 
 
 SELECT *
