@@ -70,10 +70,10 @@ select * from info_silver.ods_order_zcmoney where partner_id = 'hht' and fdate =
 select * from info_silver.edw_fund_fact_d  where to_char(stat_date,'yyyymmdd') = '20170503'
 select * from info_silver.order_fund_silver
 
+select * from info_silver.tb_nsip_a_funds_after_settle
 
 
-
-
+select * from info_silver.odd_user_income
 
 
 

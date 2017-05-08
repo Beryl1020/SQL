@@ -210,13 +210,15 @@ where to_char(create_time-0.25,'yyyymmdd') between 20170401 and 20170430
 group by type
 order by type
 
+-- 7 滞纳金 -5.-6 盈亏 -3.-4滞纳金↑
+
 
 
 select sum(weight)*8 from info_silver.tb_nsip_t_filled_order
-where to_char(trade_time-0.25,'yyyymmdd') between 20170401 and 20170431 and
+where to_char(trade_time-0.25,'yyyymmdd') between 20170501 and 20170505 and
  ((POSITION_DIRECTION = 1 AND POSITION_OPERATION=0) OR (POSITION_DIRECTION = 2 AND POSITION_OPERATION=1))
 
--- 7 滞纳金 -5.-6 盈亏
+
 
 SELECT sum(a.trade_price*a.weight)*0.00065
 FROM info_silver.tb_nsip_t_filled_order a

@@ -55,7 +55,7 @@ FROM
       d.netinmoney,
       e.firmid  AS id2,
       g.pmec_net_in as 广贵本周总入金,
-      f.net_assets as asset1,
+      f.net_zcmoney as asset1,
       h.hhtnetin as hht当日净入金,
       i.hhtasset as hht前日净资产
     FROM
@@ -115,11 +115,11 @@ FROM
         ON a.firm_id = g.firmid
        LEFT JOIN     /*广贵昨日净资产*/
         (SELECT
-                   firmid,
-           net_assets
-         FROM silver_njs.tb_silver_data_center@silver_std
-         WHERE hdate = to_char(sysdate - 1, 'yyyymmdd')) f
-          ON a.firm_id = f.firmid
+                   firm_id,
+           net_zcmoney
+         FROM info_silver.ods_order_zcmoney
+         WHERE fdate = to_char(sysdate - 3, 'yyyymmdd')) f
+          ON a.firm_id = f.firm_id
         LEFT JOIN    /*龙商当日净入金*/
         (SELECT
            fund_id,
@@ -134,7 +134,7 @@ FROM
            fund_id,
            sum(last_capital) AS hhtasset
          FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT
-         WHERE to_char(trade_date, 'yyyymmdd') = to_char(SYSDATE - 1, 'yyyymmdd')
+         WHERE to_char(trade_date, 'yyyymmdd') = to_char(SYSDATE - 3, 'yyyymmdd')
          GROUP BY fund_id) i
           ON e.firmid = i.fund_id
     WHERE b.net_assets > 0
