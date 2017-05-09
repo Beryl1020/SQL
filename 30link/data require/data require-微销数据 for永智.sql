@@ -139,7 +139,7 @@ FROM silver_consult.tb_crm_transfer_record@consul_std a
    WHERE a1.valid = 1 AND a1.process IN (5, 6)
    GROUP BY a1.user_id) ee
     ON a.user_id = ee.user_id
-WHERE to_char(a.submit_time, 'yyyymmdd') >= '20170424'
+WHERE to_char(a.submit_time, 'yyyymmdd') between '20170424' and to_char(sysdate-1,'yyyymmdd')
       AND a.process IN (5, 6) AND a.valid = 1
 
 

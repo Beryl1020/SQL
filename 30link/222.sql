@@ -228,4 +228,7 @@ and bia_group_id in (1,7,8,111)
 select * from info_silver.ods_order_zcmoney where Fdate = '20170505' and partner_id = 'pmec'
 
 
+SELECT *
+FROM info_silver.ods_history_deal
+
 
