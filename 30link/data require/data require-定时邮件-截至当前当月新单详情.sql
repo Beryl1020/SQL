@@ -22,7 +22,7 @@ FROM
           sum(charge_amount) net_in
         FROM (SELECT *
               FROM silver_consult.tb_crm_transfer_record@consul_std
-              WHERE trunc(submit_time) = trunc(sysdate) AND process IN (5, 6)) a
+              WHERE trunc(submit_time) = trunc(sysdate) AND process IN (5, 6) ) a
           LEFT JOIN silver_consult.v_tb_crm_user@consul_std e ON a.user_id = e.id
           LEFT JOIN (SELECT *
                      FROM tb_silver_user_stat@silver_std
@@ -56,3 +56,8 @@ FROM
           substr(to_char(b.submit_time, 'yyyymmdd'), 1, 6) = substr(to_char(sysdate, 'yyyymmdd'), 1, 6)
   )
 ORDER BY 流转时间 ASC
+
+
+
+select * from info_silver.ods_crm_transfer_record where to_char(submit_time,'yyyymmdd')=20170509 and process in (5,6) and valid=1
+select * from silver_consult.tb_crm_transfer_record@consul_std where to_char(submit_time,'yyyymmdd')=20170509 and process in (5,6) and valid=1

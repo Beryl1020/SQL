@@ -149,7 +149,10 @@ SELECT
   count(DISTINCT CASE WHEN partner_id = 'njs'
     THEN firmid END),
   --月交易用户总数
-  count(DISTINCT CASE WHEN partner_id = 'pmec'
+
+count(DISTINCT CASE WHEN partner_id = 'pmec'
+    THEN firmid END),
+  count(DISTINCT CASE WHEN partner_id = 'hht'
     THEN firmid END)
 FROM
   info_silver.ods_history_deal

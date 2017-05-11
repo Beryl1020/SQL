@@ -217,7 +217,7 @@ on aaa.id<>ccc.id
 select '电销前端开单',count(distinct user_id)
 from info_silver.ods_crm_transfer_record
 where process in (5,6) and valid=1
-      and to_char(submit_time,'yyyymmdd') between 20170422 and 20170428
+      and to_char(submit_time,'yyyymmdd') between 20170401 and 20170430
       and fgroup_id in (2,3,4,5,6,9,10,11,12,105,116,117,106) --电销前端开单
 
 union all
@@ -233,11 +233,11 @@ FROM
    FROM info_silver.ods_crm_transfer_record trans
      LEFT JOIN info_silver.ods_history_deal deal
        ON trans.firm_id = deal.firmid
-   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170422 AND 20170428
+   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170401 and 20170430
          AND trans.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105,106,116,117)
          AND trans.process IN (5, 6) AND trans.valid = 1
          AND (deal.trade_time > trans.submit_time)
-         AND deal.fdate <=20170428
+         AND deal.fdate <=20170430
    GROUP BY trans.firm_id) aa
 where (aa.num1 < 100000 AND aa.num2 >= 30)
        or (aa.num1 < 200000 AND aa.num2 >= 60)
@@ -253,7 +253,7 @@ select '新增资源数', count(distinct b1.user_id) from
 
 (select a1.user_id,a1.firsttime from
 (select dis.user_id,min(dis.create_time) as firsttime from silver_consult.tb_crm_dispatch_his@consul_std dis where dis.ia_id is not null group by dis.user_id ) a1
-where to_char(a1.firsttime,'yyyymmdd') between 20170422 and 20170428) b1
+where to_char(a1.firsttime,'yyyymmdd') between 20170401 and 20170430) b1
 
 join silver_consult.tb_crm_dispatch_his@consul_std dis on b1.user_id= dis.user_id and b1.firsttime=dis.create_time
 join silver_consult.tb_crm_ia@consul_std ia on dis.ia_id=ia.id
@@ -267,7 +267,7 @@ select '新增A/B资源数', count(distinct b1.user_id) from
 
 (select a1.user_id,a1.firsttime from
 (select dis.user_id,min(dis.create_time) as firsttime from silver_consult.tb_crm_dispatch_his@consul_std dis where dis.ia_id is not null group by dis.user_id ) a1
-where to_char(a1.firsttime,'yyyymmdd') between 20170422 and 20170428) b1
+where to_char(a1.firsttime,'yyyymmdd') between 20170401 and 20170430) b1
 
 join silver_consult.tb_crm_dispatch_his@consul_std dis on b1.user_id= dis.user_id and b1.firsttime=dis.create_time
 join silver_consult.tb_crm_ia@consul_std ia on dis.ia_id=ia.id
@@ -283,7 +283,7 @@ where ia.group_id in (2,3,4,5,6,9,10,11,12,105,106,116,117) and user1.grade in (
 select '微销前端开单',count(distinct user_id)
 from info_silver.ods_crm_transfer_record
 where process in (5,6) and valid=1
-      and to_char(submit_time,'yyyymmdd') between 20170422 and 20170428
+      and to_char(submit_time,'yyyymmdd') between 20170401 and 20170430
       and fgroup_id in (112,113,114) --微销前端开单
 
 union all
@@ -299,11 +299,11 @@ FROM
    FROM info_silver.ods_crm_transfer_record trans
      LEFT JOIN info_silver.ods_history_deal deal
        ON trans.firm_id = deal.firmid
-   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170422 AND 20170428
+   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170401 AND 20170430
          AND trans.fgroup_id IN (112,113,114)
          AND trans.process IN (5, 6) AND trans.valid = 1
          AND (deal.trade_time > trans.submit_time)
-         AND deal.fdate <=20170428
+         AND deal.fdate <=20170430
    GROUP BY trans.firm_id) aa
 where (aa.num1 < 100000 AND aa.num2 >= 30)
        or (aa.num1 < 200000 AND aa.num2 >= 60)

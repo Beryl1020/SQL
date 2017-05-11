@@ -181,7 +181,7 @@ left join
             user1.group_id,
             trans.firm_id,
             sum(deal.contqty)                                     AS num1,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num2
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
           FROM
             (SELECT
                a.id       AS user_id,
@@ -223,7 +223,7 @@ left join
             user1.group_id,
             trans.firm_id,
             sum(deal.contqty)                                     AS num1,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num2
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
           FROM
             (SELECT
                a.id       AS user_id,
@@ -266,7 +266,7 @@ left join
             user1.group_id,
             trans.firm_id,
             sum(deal.contqty)                                     AS num1,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num2
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
           FROM
             (SELECT
                a.id       AS user_id,
@@ -314,7 +314,7 @@ left join
             user1.group_id,
             trans.firm_id,
             sum(deal.contqty)                                     AS num2,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num1
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
                a.id       AS user_id,
@@ -367,7 +367,7 @@ left join
             user1.group_id,
             trans.firm_id,
             sum(deal.contqty)                                     AS num2,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num1
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
                a.id       AS user_id,
@@ -460,7 +460,7 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num1,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1,
             sum(deal.contqty)                                     AS num2
           FROM
             (SELECT
@@ -506,7 +506,7 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num1,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1,
             sum(deal.contqty)                                     AS num2
           FROM
             (SELECT
@@ -552,7 +552,7 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            avg(trans.pmec_net_value_sub + trans.pmec_net_in_sub) AS num1,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1,
             sum(deal.contqty)                                     AS num2
           FROM
             (SELECT

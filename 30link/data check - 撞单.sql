@@ -13,7 +13,8 @@ FROM
       b.ia_id,
       b.fa_id,
       a.firm_id,
-      min(c.create_time) 最早联系时间 FROM
+      min(c.create_time) 最早联系时间
+    FROM
       (SELECT
          user_id,
          open_account_time,
@@ -21,8 +22,8 @@ FROM
          partner_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-          user_name = 'sikaibo@126.com'
-          --user_id=2775027
+          user_name = 'w512921030@163.com'
+          --user_id=269791810
          --AND partner_id = 'pmec'
       ) a
       LEFT JOIN
@@ -34,7 +35,7 @@ FROM
   LEFT JOIN silver_consult.tb_crm_ia@consul_std b
     ON a.ia_id = b.id;
 
-select * from silver_consult.tb_crm_tel_record@consul_std where user_id=1000422113 and worksec>0
+select * from silver_consult.tb_crm_tel_record@consul_std where user_id=1000639470 and worksec>0
 
 
 SELECT *

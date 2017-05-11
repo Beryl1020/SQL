@@ -232,3 +232,62 @@ SELECT *
 FROM info_silver.ods_history_deal
 
 
+select tel_record_id as 话单ID, check_time as 质检时间, user_id as 用户ID,user_name as 用户姓名, ia_id as 投顾ID,
+e.name as 投顾姓名,group_id as 组别, create_time as 通话开始时间, worksec as 通话时长,check_remark as 录音备注,
+(case when check_tag = '1' then '违规-普通' when check_tag = '2' then '提醒' when check_tag = '3' then '合格'  when check_tag = '4' then '优秀'  when check_tag = '5' then '违规-严重一类'  when check_tag = '6' then '违规-严重二类'  else '违规-严重三类' end) as 标记类型,
+cause_of_tag as 问题原因, correct_opinion as 修改意见,
+check_id as 质检工号,f.name as 质检姓名 from
+(select tel_record_id, check_time,check_id,user_id, ia_id,create_time, worksec,check_remark, cause_of_tag,check_tag, correct_opinion from
+(select tel_record_id, check_id, check_time, check_remark, check_tag, cause_of_tag,correct_opinion from silver_consult.tb_crm_quality_check@consul_std
+where check_time >= to_date(to_char(sysdate-1 , 'yyyymmdd') || ' 18:30:00 ','yyyymmdd hh24:mi:ss')
+and check_time < to_date(to_char(sysdate , 'yyyymmdd') || ' 18:30:00 ','yyyymmdd hh24:mi:ss'))a
+left join
+(select id, user_id, ia_id, worksec, create_time from silver_consult.tb_crm_tel_record@consul_std)b
+on a.tel_record_id = b.id)c
+left join
+(select id, user_name from silver_consult.v_tb_crm_user@consul_std)d
+on c.user_id = d.id
+left join
+(select id, name, group_id from silver_consult.tb_crm_ia@CONSUL_STD)e
+on c.ia_id = e.id
+left join
+(select id, name from silver_consult.tb_crm_ia@CONSUL_STD)f
+on c.check_id = f.id
+order by 质检时间
+
+select * from
+(
+select a.group_id 组别,a.name 投顾姓名,b.fia_id 投顾id,b.user_id 用户id,b.user_name 用户姓名,b.submit_time 流转时间,nvl(b.net_zcmoney,0)+nvl(b.net_in,0) 激活资金
+from silver_consult.tb_crm_ia@consul_std a join
+(
+select a.fia_id,a.user_id,a.submit_time,e.user_name, b.net_zcmoney,sum(charge_amount) net_in
+from (select * from silver_consult.tb_crm_transfer_record@consul_std where trunc(submit_time)=trunc(sysdate) and process in (5,6)) a
+left join silver_consult.v_tb_crm_user@consul_std e on a.user_id=e.id
+left join (select * from tb_silver_user_stat@silver_std where partner_id='hht') d on e.fa_id=d.user_id
+left join (select firm_id,net_zcmoney from info_silver.ods_order_zcmoney where to_char(fdate)=(select case when to_char(trunc(sysdate),'day')='星期一' then (to_char(trunc(sysdate)-3,'yyyymmdd')) else (to_char(trunc(sysdate)-1,'yyyymmdd')) end from dual) ) b on d.firm_id=b.firm_id
+left join (select * from TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT where ORDER_STATUS=3 and RECONC_STATUS=2) c on d.firm_id=c.fund_id and c.create_time<a.submit_time and c.create_time>trunc(sysdate)
+group by a.fia_id,a.user_id,a.submit_time,e.user_name, b.net_zcmoney
+)b on a.id=b.fia_id
+union
+
+select a.group_id 组别,a.name 投顾姓名,b.fia_id 投顾id,b.user_id 用户id,b.user_name 用户姓名,b.submit_time 流转时间,nvl(b.net_zcmoney,0)+nvl(b.net_in,0) 激活资金
+from silver_consult.tb_crm_ia@consul_std a join
+(
+select a.fia_id,a.user_id,a.submit_time,e.user_name, b.net_zcmoney,sum(charge_amount) net_in
+from (select * from silver_consult.tb_crm_transfer_record@consul_std where trunc(submit_time)=trunc(sysdate-1) and process in (5,6)) a
+left join silver_consult.v_tb_crm_user@consul_std e on a.user_id=e.id
+left join (select * from tb_silver_user_stat@silver_std where partner_id='hht') d on e.fa_id=d.user_id
+left join (select firm_id,net_zcmoney from info_silver.ods_order_zcmoney where to_char(fdate)=(select case when to_char(trunc(sysdate-1),'day')='星期一' then (to_char(trunc(sysdate)-4,'yyyymmdd')) else (to_char(trunc(sysdate)-2,'yyyymmdd')) end from dual) ) b on d.firm_id=b.firm_id
+left join (select * from TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT where ORDER_STATUS=3 and RECONC_STATUS=2) c on d.firm_id=c.fund_id and c.create_time<a.submit_time and c.create_time>trunc(sysdate-1)
+group by a.fia_id,a.user_id,a.submit_time,e.user_name, b.net_zcmoney
+)b on a.id=b.fia_id
+
+
+union
+select a.group_id 组别,a.name 投顾姓名,b.fia_id 投顾id,b.user_id 用户id,c.user_name 用户姓名,b.submit_time 流转时间,HHT_NET_VALUE_SUB+ HHT_NET_IN_SUB 激活资金
+from silver_consult.tb_crm_ia@consul_std a
+join info_silver.ods_crm_transfer_record b on a.id=b.fia_id
+join silver_consult.v_tb_crm_user@consul_std c on b.user_id=c.id
+where b.process in (5,6) and b.valid=1 and substr(to_char(b.submit_time,'yyyymmdd'),1,6)=substr(to_char(sysdate,'yyyymmdd'),1,6)
+)
+order by 流转时间 asc
