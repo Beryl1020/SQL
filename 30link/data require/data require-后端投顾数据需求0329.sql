@@ -171,7 +171,14 @@ left join
         aa.ia_id,
         aa.ia_name,
         aa.group_id,
-        round(count(CASE WHEN aa.num1 >= 30
+        round(count(CASE WHEN
+          (aa.num1 < 100000 AND aa.num2 >= 30)
+       or (aa.num1 < 200000 AND aa.num2 >= 60)
+        or (aa.num1 < 300000 AND aa.num2 >= 120)
+        or (aa.num1 < 500000 AND aa.num2 >= 180)
+         or (aa.num1 < 1000000 AND aa.num2 >= 240)
+         or (aa.num1 < 2000000 AND aa.num2 >= 480)
+          or (aa.num1 >= 2000000 AND aa.num2 >= 720)
           THEN aa.firm_id END) / count(aa.firm_id),5) as 当日流转当日开仓率
       FROM
         (
@@ -180,8 +187,11 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            sum(deal.contqty)                                     AS num1,
-            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
+            sum(case when deal.wareid = 'LSAG100g' then deal.contnum
+              when deal.wareid = 'GDAG' then deal.contnum
+                when deal.wareid = 'GDPD' then deal.contnum*30
+                  when deal.wareid = 'GDPT' then deal.contnum *56 end )  AS num2,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
                a.id       AS user_id,
@@ -213,7 +223,14 @@ left join
         aa.ia_id,
         aa.ia_name,
         aa.group_id,
-        round(count(CASE WHEN aa.num1 >= 30
+        round(count(CASE WHEN
+          (aa.num1 < 100000 AND aa.num2 >= 30)
+       or (aa.num1 < 200000 AND aa.num2 >= 60)
+        or (aa.num1 < 300000 AND aa.num2 >= 120)
+        or (aa.num1 < 500000 AND aa.num2 >= 180)
+         or (aa.num1 < 1000000 AND aa.num2 >= 240)
+         or (aa.num1 < 2000000 AND aa.num2 >= 480)
+          or (aa.num1 >= 2000000 AND aa.num2 >= 720)
           THEN aa.firm_id END) / count(aa.firm_id),5) as 本周当日开仓率
       FROM
         (
@@ -222,8 +239,11 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            sum(deal.contqty)                                     AS num1,
-            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
+            sum(case when deal.wareid = 'LSAG100g' then deal.contnum
+              when deal.wareid = 'GDAG' then deal.contnum
+                when deal.wareid = 'GDPD' then deal.contnum*30
+                  when deal.wareid = 'GDPT' then deal.contnum *56 end )        AS num2,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
                a.id       AS user_id,
@@ -256,7 +276,14 @@ left join
         aa.ia_id,
         aa.ia_name,
         aa.group_id,
-        round(count(CASE WHEN aa.num1 >= 30
+        round(count(CASE WHEN
+          (aa.num1 < 100000 AND aa.num2 >= 30)
+       or (aa.num1 < 200000 AND aa.num2 >= 60)
+        or (aa.num1 < 300000 AND aa.num2 >= 120)
+        or (aa.num1 < 500000 AND aa.num2 >= 180)
+         or (aa.num1 < 1000000 AND aa.num2 >= 240)
+         or (aa.num1 < 2000000 AND aa.num2 >= 480)
+          or (aa.num1 >= 2000000 AND aa.num2 >= 720)
           THEN aa.firm_id END) / count(aa.firm_id),5) as 本月当日开仓率
       FROM
         (
@@ -265,8 +292,11 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            sum(deal.contqty)                                     AS num1,
-            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num2
+            sum(case when deal.wareid = 'LSAG100g' then deal.contnum
+              when deal.wareid = 'GDAG' then deal.contnum
+                when deal.wareid = 'GDPD' then deal.contnum*30
+                  when deal.wareid = 'GDPT' then deal.contnum *56 end) AS num2,
+            avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
                a.id       AS user_id,
@@ -313,7 +343,10 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            sum(deal.contqty)                                     AS num2,
+            sum(case when deal.wareid = 'LSAG100g' then deal.contnum
+              when deal.wareid = 'GDAG' then deal.contnum
+                when deal.wareid = 'GDPD' then deal.contnum*30
+                  when deal.wareid = 'GDPT' then deal.contnum *56 end)     AS num2,
             avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
@@ -366,7 +399,10 @@ left join
             user1.ia_name,
             user1.group_id,
             trans.firm_id,
-            sum(deal.contqty)                                     AS num2,
+            sum(case when deal.wareid = 'LSAG100g' then deal.contnum
+              when deal.wareid = 'GDAG' then deal.contnum
+                when deal.wareid = 'GDPD' then deal.contnum*30
+                  when deal.wareid = 'GDPT' then deal.contnum *56 end)                    AS num2,
             avg(trans.hht_net_value_sub + trans.hht_net_in_sub) AS num1
           FROM
             (SELECT
@@ -583,7 +619,7 @@ left join
       ) b12
     on bbb.ia_id=b12.ia_id and  bbb.ia_name=b12.ia_name and bbb.group_id=b12.group_id
 
-order by bbb.group_id,bbb.ia_id
+order by bbb.group_id,bbb.ia_id,bbb.ia_name
 
 
 

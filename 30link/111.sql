@@ -7,9 +7,9 @@ FROM info_silver.ods_history_deal                     --3
 SELECT *
 FROM silver_njs.pmec_zj_flow@silver_std               --4
 SELECT *
-FROM silver_njs.tb_silver_data_center@silver_std    --资产表
+FROM silver_njs.tb_silver_data_center@silver_std     --资产表
 SELECT *
-FROM silver_njs.history_transfer@silver_std    where fdate = 20170502        --出入金表
+FROM silver_njs.history_transfer@silver_std          --出入金表
 SELECT *
 FROM silver_consult.v_tb_crm_user@consul_std          --7
 SELECT *
@@ -44,7 +44,7 @@ FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_user_fact_d
 SELECT *
-FROM info_silver.dw_user_account                                 --史上最全user表
+FROM info_silver.dw_user_account   where firm_id in ('163170502814036','163170425657593','163170502335160','163170502498103')                   --史上最全user表
 SELECT *
 FROM silver_njs.pmec_account_info@silver_std
 SELECT *

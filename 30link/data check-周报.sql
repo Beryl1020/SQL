@@ -1,17 +1,24 @@
 --  Part 1. 当周交易额
 
-(SELECT sum(case when PARTNER_ID = 'njs' and fdate between 20170422 and 20170428 then CONTQTY END) as n1,
-  sum(case when PARTNER_ID = 'njs' and fdate between 20170401 and 20170428 then CONTQTY END) as n2,
-  sum(case when PARTNER_ID = 'njs' and fdate between 20170401 and 20170428 then CONTQTY END) as n3,
-  sum(case when PARTNER_ID = 'njs' and fdate between 20170101 and 20170428 then CONTQTY END) as n4
-  from info_silver.ods_history_deal) --njs 周、月、季度、年总交易额
+(SELECT sum(case when PARTNER_ID = 'njs' and fdate between 20170506 and 20170512 then CONTQTY END) as n1,
+  sum(case when PARTNER_ID = 'njs' and fdate between 20170501 and 20170512 then CONTQTY END) as n2,
+  sum(case when PARTNER_ID = 'njs' and fdate between 20170401 and 20170512 then CONTQTY END) as n3,
+  sum(case when PARTNER_ID = 'njs' and fdate between 20170101 and 20170512 then CONTQTY END) as n4
+  from info_silver.ods_history_deal)    --njs 周、月、季度、年总交易额
 union
 
-(SELECT sum(case when PARTNER_ID = 'hht' and fdate between 20170422 and 20170428 then CONTQTY END) as p1,
-  sum(case when PARTNER_ID = 'hht' and fdate between 20170401 and 20170428 then CONTQTY END) as p2,
-  sum(case when PARTNER_ID = 'hht' and fdate between 20170401 and 20170428 then CONTQTY END) as p3,
-  sum(case when PARTNER_ID = 'hht' and fdate between 20170101 and 20170428 then CONTQTY END) as p4
-  from info_silver.ods_history_deal) --hht周、月、季度、年总交易额
+(SELECT sum(case when PARTNER_ID = 'hht' and fdate between 20170506 and 20170512 then CONTQTY END) as p1,
+  sum(case when PARTNER_ID = 'hht' and fdate between 20170501 and 20170512 then CONTQTY END) as p2,
+  sum(case when PARTNER_ID = 'hht' and fdate between 20170401 and 20170512 then CONTQTY END) as p3,
+  sum(case when PARTNER_ID = 'hht' and fdate between 20170101 and 20170512 then CONTQTY END) as p4
+  from info_silver.ods_history_deal)    --hht周、月、季度、年总交易额
+UNION 
+    (SELECT sum(case when fdate between 20170506 and 20170512 then CONTQTY END) as p1,
+  sum(case when fdate between 20170501 and 20170512 then CONTQTY END) as p2,
+  sum(case when fdate between 20170401 and 20170512 then CONTQTY END) as p3,
+  sum(case when fdate between 20170101 and 20170512 then CONTQTY END) as p4
+  from info_silver.ods_history_deal)   --平台周、月、季度、年总交易额
+    
 
 
 
@@ -19,48 +26,50 @@ union
 
 
 -- Part 2. 平台基础数据
-  SELECT sum(case when PARTNER_ID = 'hht' and fdate between 20170422 and 20170428 then CONTQTY END)/5,
-  sum(case when fdate between 20170422 and 20170428 then CONTQTY END)/5
+  SELECT sum(case when PARTNER_ID = 'hht' and fdate between 20170506 and 20170512 then CONTQTY END)/5,
+  sum(case when fdate between 20170506 and 20170512 then CONTQTY END)/5
   from info_silver.ods_history_deal -- hht日均交易额，平台日均交易额
 
 union all
 
-  select sum(case when partnerid='hht' and fdate between 20170422 and 20170428 and inorout='A' then inoutmoney
-            when partnerid='hht' and fdate between 20170422 and 20170428 and inorout='B' then (-1)*inoutmoney end),
-  sum(case when fdate between 20170422 and 20170428 and inorout='A' then inoutmoney
-      when fdate between 20170422 and 20170428 and inorout='B' then (-1)*inoutmoney end)
+  select sum(case when partnerid='hht' and fdate between 20170506 and 20170512 and inorout='A' then inoutmoney
+            when partnerid='hht' and fdate between 20170506 and 20170512 and inorout='B' then (-1)*inoutmoney end),
+  sum(case when fdate between 20170506 and 20170512 and inorout='A' then inoutmoney
+      when fdate between 20170506 and 20170512 and inorout='B' then (-1)*inoutmoney end)
   from silver_njs.history_transfer@silver_std -- hht净入金、平台净入金
 
 UNION all
 
-  select sum(case when PARTNER_ID = 'hht' then NET_zcmoney END),
-  sum(NET_zcmoney)
-  from info_silver.ods_order_zcmoney
-  where fdate=20170428 -- hht净资产、平台净资产
+  select sum(case when a.PARTNER_ID = 'hht' then a.NET_zcmoney END),
+  sum(a.NET_zcmoney)
+  from info_silver.ods_order_zcmoney a
+    join info_silver.dw_user_account b
+    on a.firm_id = b.firm_id
+  where a.fdate=20170512 -- hht净资产、平台净资产
 
 union ALL
 
   select sum(a.cnt1)/5,sum(a.cnt2)/5
     from
       (select    deal.fdate,
-         count (distinct case when deal.partner_id='hht' and deal.fdate between 20170422 and 20170428 then deal.firmid end) as cnt1,
-         count (distinct case when deal.fdate between 20170422 and 20170428 then deal.firmid end) as cnt2
+         count (distinct case when deal.partner_id='hht' and deal.fdate between 20170506 and 20170512 then deal.firmid end) as cnt1,
+         count (distinct case when deal.fdate between 20170506 and 20170512 then deal.firmid end) as cnt2
        from info_silver.ods_history_deal deal
-      where deal.fdate between 20170422 and 20170428
+      where deal.fdate between 20170506 and 20170512
       --   and deal.ordersty<>151 --非强平
       group by deal.fdate) a -- hht日均交易用户，平台日均交易用户
 
 
 union all
 
-  select count (distinct case when partner_id ='hht' and TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170422 and 20170428 then firm_id end )/5,
-    count (distinct case when TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170422 and 20170428 then firm_id end )/5
+  select count (distinct case when partner_id ='hht' and TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170506 and 20170512 then firm_id end )/5,
+    count (distinct case when TO_CHAR(OPEN_ACCOUNT_TIME,'yyyymmdd') between 20170506 and 20170512 then firm_id end )/5
     from tb_silver_user_stat@silver_std -- hht日均开户用户，平台日均开户用户
 
 union ALL
 
-  select count (case when aa.pid='hht' and aa.mindate between 20170422 and 20170428 then aa.firmid end)/5,
-  count (case when aa.mindate between 20170422 and 20170428 then aa.firmid END )/5
+  select count (case when aa.pid='hht' and aa.mindate between 20170506 and 20170512 then aa.firmid end)/5,
+  count (case when aa.mindate between 20170506 and 20170512 then aa.firmid END )/5
     from
   (select trans.firmid, min(trans.fdate) as mindate,trans.partnerid as pid
    from silver_njs.history_transfer@silver_std trans
@@ -68,7 +77,7 @@ union ALL
    group by firmid,partnerid) aa -- hht日均首次入金用户，平台日均首次入金用户
 
 union ALL
-  select count(distinct case when to_char(bbb.date1,'yyyymmdd') between 20170422 and 20170428 then bbb.id end)/5, 0 from
+  select count(distinct case when to_char(bbb.date1,'yyyymmdd') between 20170506 and 20170512 then bbb.id end)/5, 0 from
   (select aaa.firm_id id, min(aaa.realdate) as date1
   from
   (select suba.firmid as firm_id, suba.realdate as realdate, sum(subb.summoney) as money
@@ -84,10 +93,11 @@ union ALL
 
 
 ----Part 3 投顾新单数据
-select sum(trans.hht_net_value_sub+trans.hht_net_in_sub) as 激活资金,
+select sum(case when partneR_id = 'hht' then trans.hht_net_value_sub+trans.hht_net_in_sub
+  when partner_id = 'pmec' then pmec_net_value_sub + pmec_net_in_sub end) as 激活资金,
   count(distinct trans.firm_id) as 流转单数
 from info_silver.ods_crm_transfer_record trans
-where to_char(trans.submit_time,'yyyymmdd') between 20170422 and 20170428
+where to_char(trans.submit_time,'yyyymmdd') between 20170506 and 20170512
 and trans.process in(5,6) and trans.valid=1
 
 
@@ -98,18 +108,18 @@ and trans.process in(5,6) and trans.valid=1
 
   (select 1 as subid,sum(io.inoutmoney) as money -- 总入金
     from silver_njs.history_transfer@silver_std io
-    where io.inorout = 'A' and io.partnerid='hht' and io.fdate between 20170422 and 20170428
+    where io.inorout = 'A' and io.partnerid='hht' and io.fdate between 20170506 and 20170512
     group by 1) sub1
   left join
   (select 2 as subid,sum(case when io.inorout='A' then inoutmoney when io.inorout='B' then (-1)*inoutmoney end ) as money --净入金
    from silver_njs.history_transfer@silver_std io
-   where io.partnerid='hht' and io.fdate between 20170422 and 20170428
+   where io.partnerid='hht' and io.fdate between 20170506 and 20170512
    group by 2) sub2
   on sub1.subid<>sub2.subid
   left join
   (select    3 as subid,sum(deal.CONTQTY) as money -- 总交易额
    from info_silver.ods_history_deal deal
-   where deal.partner_id='hht' and deal.fdate between '20170422' and '20170428'
+   where deal.partner_id='hht' and deal.fdate between '20170506' and '20170512'
 
    group by 3) sub3
   on sub1.subid<>sub3.subid
@@ -120,19 +130,19 @@ and trans.process in(5,6) and trans.valid=1
   from info_silver.ods_history_deal deal
   where deal.partner_id ='hht'
   and ((deal.operation_src = 'open' and buyorsal = 'B') or (deal.operation_src = 'close' and buyorsal = 'S'))
-  and deal.fdate between '20170422' and '20170428'
+  and deal.fdate between '20170506' and '20170512'
   group by 4) sub4
     ON sub1.subid<>sub4.subid
   left join
     (select 5 as subid, sum(case when flow.type=7 then flow.AMOUNT end) as money -- 滞纳金
      from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT flow
-     where to_char(create_time-0.25,'yyyymmdd') between 20170422 and 20170428
+     where to_char(create_time-0.25,'yyyymmdd') between 20170506 and 20170512
      group by 5) sub5
     ON sub1.subid<>sub5.subid
   left JOIN
     (select 6 as subid, sum(case when flow.type in (5,6) then (-1)*flow.amount end) as money -- 头寸+点差
      from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT flow
-      where to_char(create_time-0.25,'yyyymmdd') between 20170422 and 20170428
+      where to_char(create_time-0.25,'yyyymmdd') between 20170506 and 20170512
       group by 6) sub6
     on sub1.subid<>sub6.subid
 
@@ -160,7 +170,7 @@ select aaa.投顾龙商交易额,aaa.投顾龙商交易人数,bbb.后端用户�
            JOIN info_silver.ods_crm_transfer_record trans
              ON deal.firmid = trans.firm_id
          WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
-               AND deal.fdate BETWEEN 20170422 AND 20170428
+               AND deal.fdate BETWEEN 20170506 AND 20170512
                AND deal.trade_time > trans.submit_time
                AND trans.process IN (5, 6) AND trans.valid = 1
                AND deal.partner_id = 'hht'
@@ -185,7 +195,7 @@ join
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
             and trans.process IN (5, 6) AND trans.valid = 1
             AND trans.submit_time < flow.create_time
-            AND to_char(flow.create_time-0.25,'yyyymmdd')  BETWEEN 20170422 AND 20170428
+            AND to_char(flow.create_time-0.25,'yyyymmdd')  BETWEEN 20170506 AND 20170512
     ) bbb
 on aaa.id<>bbb.id
 
@@ -204,7 +214,7 @@ join
         WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
               and trans.process IN (5, 6) AND trans.valid = 1
               AND inout.partnerid = 'hht'
-              AND inout.fdate BETWEEN 20170422 AND 20170428
+              AND inout.fdate BETWEEN 20170506 AND 20170512
       )ccc
 on aaa.id<>ccc.id
 
@@ -217,7 +227,7 @@ on aaa.id<>ccc.id
 select '电销前端开单',count(distinct user_id)
 from info_silver.ods_crm_transfer_record
 where process in (5,6) and valid=1
-      and to_char(submit_time,'yyyymmdd') between 20170401 and 20170430
+      and to_char(submit_time,'yyyymmdd') between 20170506 and 20170512
       and fgroup_id in (2,3,4,5,6,9,10,11,12,105,116,117,106) --电销前端开单
 
 union all
@@ -233,11 +243,11 @@ FROM
    FROM info_silver.ods_crm_transfer_record trans
      LEFT JOIN info_silver.ods_history_deal deal
        ON trans.firm_id = deal.firmid
-   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170401 and 20170430
+   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 and 20170512
          AND trans.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105,106,116,117)
          AND trans.process IN (5, 6) AND trans.valid = 1
          AND (deal.trade_time > trans.submit_time)
-         AND deal.fdate <=20170430
+         AND deal.fdate <=20170512
    GROUP BY trans.firm_id) aa
 where (aa.num1 < 100000 AND aa.num2 >= 30)
        or (aa.num1 < 200000 AND aa.num2 >= 60)
@@ -253,7 +263,7 @@ select '新增资源数', count(distinct b1.user_id) from
 
 (select a1.user_id,a1.firsttime from
 (select dis.user_id,min(dis.create_time) as firsttime from silver_consult.tb_crm_dispatch_his@consul_std dis where dis.ia_id is not null group by dis.user_id ) a1
-where to_char(a1.firsttime,'yyyymmdd') between 20170401 and 20170430) b1
+where to_char(a1.firsttime,'yyyymmdd') between 20170506 and 20170512) b1
 
 join silver_consult.tb_crm_dispatch_his@consul_std dis on b1.user_id= dis.user_id and b1.firsttime=dis.create_time
 join silver_consult.tb_crm_ia@consul_std ia on dis.ia_id=ia.id
@@ -267,7 +277,7 @@ select '新增A/B资源数', count(distinct b1.user_id) from
 
 (select a1.user_id,a1.firsttime from
 (select dis.user_id,min(dis.create_time) as firsttime from silver_consult.tb_crm_dispatch_his@consul_std dis where dis.ia_id is not null group by dis.user_id ) a1
-where to_char(a1.firsttime,'yyyymmdd') between 20170401 and 20170430) b1
+where to_char(a1.firsttime,'yyyymmdd') between 20170506 and 20170512) b1
 
 join silver_consult.tb_crm_dispatch_his@consul_std dis on b1.user_id= dis.user_id and b1.firsttime=dis.create_time
 join silver_consult.tb_crm_ia@consul_std ia on dis.ia_id=ia.id
@@ -283,7 +293,7 @@ where ia.group_id in (2,3,4,5,6,9,10,11,12,105,106,116,117) and user1.grade in (
 select '微销前端开单',count(distinct user_id)
 from info_silver.ods_crm_transfer_record
 where process in (5,6) and valid=1
-      and to_char(submit_time,'yyyymmdd') between 20170401 and 20170430
+      and to_char(submit_time,'yyyymmdd') between 20170506 and 20170512
       and fgroup_id in (112,113,114) --微销前端开单
 
 union all
@@ -299,11 +309,11 @@ FROM
    FROM info_silver.ods_crm_transfer_record trans
      LEFT JOIN info_silver.ods_history_deal deal
        ON trans.firm_id = deal.firmid
-   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170401 AND 20170430
+   WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 and 20170512
          AND trans.fgroup_id IN (112,113,114)
          AND trans.process IN (5, 6) AND trans.valid = 1
          AND (deal.trade_time > trans.submit_time)
-         AND deal.fdate <=20170430
+         AND deal.fdate <=20170512
    GROUP BY trans.firm_id) aa
 where (aa.num1 < 100000 AND aa.num2 >= 30)
        or (aa.num1 < 200000 AND aa.num2 >= 60)
@@ -328,10 +338,10 @@ from
 
       trans.cur_bgroup_id                                          AS id,
       sum(trans.hht_net_value_sub + trans.hht_net_in_sub)        AS 总接手资金,
-      sum(CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170422 AND 20170428
+      sum(CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
         THEN trans.hht_net_value_sub + trans.hht_net_in_sub END) AS 本周接收资金,
       count(DISTINCT trans.firm_id)                                AS 服务用户数,
-      count(DISTINCT CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170422 AND 20170428
+      count(DISTINCT CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
         THEN trans.firm_id END)                                    AS 本周新增服务用户数
     FROM info_silver.ods_crm_transfer_record trans
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
@@ -353,7 +363,7 @@ JOIN
         ON trans.firm_id = inout.firmid
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
           AND trans.process IN (5, 6) AND trans.valid = 1
-          AND inout.fdate BETWEEN 20170422 AND 20170428
+          AND inout.fdate BETWEEN 20170506 AND 20170512
           AND trans.submit_time < inout.realdate
     GROUP BY trans.cur_bgroup_id
     ) b2
@@ -371,7 +381,7 @@ join
       WHERE trans.cur_bgroup_id IN (1, 7, 8, 111)
             AND trans.process IN (5, 6) AND trans.valid = 1
             AND trans.submit_time < deal.trade_time
-            AND deal.fdate BETWEEN 20170422 AND 20170428
+            AND deal.fdate BETWEEN 20170506 AND 20170512
       GROUP BY trans.cur_bgroup_id
       ) b3
     on b1.id=b3.id
@@ -433,7 +443,7 @@ JOIN
             JOIN info_silver.tb_crm_tel_record tel
               ON tel.user_id = trans.user_id
           WHERE tel.create_time > trans.submit_time
-                AND to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170422 AND 20170428
+                AND to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
                 AND to_char(tel.create_time, 'yyyymmdd') = to_char(trans.submit_time, 'yyyymmdd')
                 and tel.ia_id = trans.bia_id
                 AND trans.cur_bgroup_id IN (1, 7, 8, 111)
@@ -459,7 +469,7 @@ order by b1.id
   from info_silver.ods_history_deal deal
 left join info_silver.dw_user_account refer
     on deal.firmid=refer.firm_id
-    where deal.fdate between 20170422 and 20170428
+    where deal.fdate between 20170506 and 20170512
 
 
 
