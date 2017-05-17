@@ -53,10 +53,12 @@ FROM info_silver.dw_user_account b
   on b.firm_id = c.firm_id
 where to_char(a.trade_Date,'yyyymmdd') = to_char(sysdate-3,'yyyymmdd')
   and group_id in (1,7,8,111)
-  and a.trade_date > c.submit_time and c.process in (5,6) and c.valid =1
+  and a.trade_time > c.submit_time and c.process in (5,6) and c.valid =1
   group by b.user_id,b.real_name,b.ia_name,b.group_id
 ) cc
 on aa.主站id=cc.主站id
+
+select * from info_silver.tb_nsip_t_filled_order
 
 
 
@@ -115,7 +117,7 @@ FROM info_silver.dw_user_account b
   on b.firm_id = c.firm_id
 where to_char(a.trade_Date,'yyyymm') = to_char(sysdate-1,'yyyymm')
   and group_id in (1,7,8,111)
-  and a.trade_date > c.submit_time and c.process in (5,6) and c.valid =1
+  and a.trade_time > c.submit_time and c.process in (5,6) and c.valid =1
   group by b.user_id,b.real_name,b.ia_name,b.group_id
 ) cc
 on aa.主站id=cc.主站id
