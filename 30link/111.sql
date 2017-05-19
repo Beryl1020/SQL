@@ -73,7 +73,6 @@ select * from info_silver.order_fund_silver
 select * from info_silver.tb_nsip_a_funds_after_settle
 
 
-select * from info_silver.odd_user_income
 
 
 

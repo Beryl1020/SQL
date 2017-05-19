@@ -274,6 +274,8 @@ FROM
     ON sub1.subid <> sub6.subid
 
 
+
+
 SELECT
   type,
   sum(amount)

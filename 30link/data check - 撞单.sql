@@ -22,8 +22,8 @@ FROM
          partner_id
        FROM tb_silver_user_stat@silver_std
        WHERE
-          --user_name = 'wsm2201@163.com'
-          user_id=1201014
+          user_name = 'm18932832886@163.com'
+          --user_id=1201014
          --AND partner_id = 'pmec'
       ) a
       LEFT JOIN
