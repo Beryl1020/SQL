@@ -72,6 +72,8 @@ select * from info_silver.order_fund_silver
 
 select * from info_silver.tb_nsip_a_funds_after_settle
 
+select * from SILVER_NJS.HISTORY_DEAL@SILVERONLINE_LINK
+
 
 
 

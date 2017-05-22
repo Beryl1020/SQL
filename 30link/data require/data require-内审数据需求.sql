@@ -33,5 +33,22 @@ select * from info_silver.ods_history_deal
 where firmid = 31836371 AND fdate BETWEEN '20170410' AND '20170414';
 
 
+/* hht持仓情况 */
+SELECT *
+FROM NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
+WHERE trader_id = '163170522947080'
+
+/* hht出入金记录 */
+SELECT *
+FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT
+WHERE fund_id = '163170522947080'
+
+/* hht交易情况 */
+SELECT * FROM info_silver.ods_history_deal
+where firmid = '163170522947080'
+
+
+
+
 
 
