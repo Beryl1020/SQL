@@ -731,7 +731,7 @@ FROM
         JOIN
         (SELECT *
          FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
+         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'mm'),
                                                                 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
                AND PROCESS IN (5, 6) AND valid = 1) b
           ON A.firmid = b.firm_id
@@ -750,7 +750,7 @@ FROM
         JOIN
         (SELECT *
          FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
+         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'mm'),
                                                                 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
                AND PROCESS IN (5, 6) AND valid = 1) b
           ON A.firmid = b.firm_id

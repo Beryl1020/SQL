@@ -1,971 +1,227 @@
 SELECT *
 FROM info_silver.dw_user_account
-WHERE user_name = 'zlf06@126.com'
+
+
+SELECT *
+FROM
+  (
+    SELECT
+      a.user_id,
+      max(b.id)       AS crm_user_id,
+      max(c.id)       AS ia_id,
+      max(c.name)     AS ia_name,
+      max(c.group_id) AS group_id
+    FROM tb_silver_user_stat@silver_std a
+      JOIN silver_consult.v_tb_crm_user@consul_std b
+        ON a.user_id = b.fa_id
+      JOIN silver_consult.tb_crm_ia@consul_std c
+        ON b.ia_id = c.id
+    GROUP BY a.user_id
+  ) b
+  LEFT JOIN (SELECT
+               user_id,
+               max(connect_time) AS connect_time
+             FROM silver_consult.tb_crm_tel_record@consul_std
+             WHERE worksec > 0
+             GROUP BY user_id) a
+    ON a.user_id = b.crm_user_id
+  LEFT JOIN
+  (SELECT
+     useR_id,
+     tag_id
+   FROM silver_consult.tb_crm_tag_user_rel@consul_std
+   WHERE tag_id IN (38, 39, 40)) c
+    ON b.crm_user_id = c.user_id
+WHERE b.crm_user_id IS NOT NULL
+      AND
+      (a.connect_time IS NULL OR to_char(a.connect_time, 'yyyymmdd') <= '20170424')
+      AND b.group_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 117, 116)
+      AND b.ia_id IS NOT NULL
+
+
+SELECT *
+FROM info_silver.tb_crm_tel_record
+
+SELECT *
+FROM info_silver.rpt_crm_transfer_user_stat
+WHERE to_char(stat_date, 'yyyymmdd') = '20170524'
+
+SELECT *
+FROM info_silver.rpt_crm_transfer_user_stat
+WHERE to_char(stat_date, 'yyyymmdd') = 20170523 AND group_id NOT IN (100, 115)
+
+SELECT to_char(trunc(add_months(sysdate - 1, -1), 'mm'))
+FROM dual
+
+
+SELECT sum(CASE WHEN b.inorout = 'A'
+  THEN b.inoutmoney
+           WHEN b.inorout = 'B'
+             THEN b.inoutmoney * (-1) END)
+FROM info_silver.ods_crm_transfer_record a
+  JOIN info_silver.dw_user_account c ON a.user_id = c.crm_user_id AND c.partner_id = 'hht'
+  LEFT JOIN silver_njs.history_transfer@silver_std b
+    ON c.firm_id = b.firmid
+
+WHERE to_char(a.submit_time, 'yyyymm') = '201705'
+      AND b.realdate > a.submit_time
+      AND substr(b.fdate, 1, 6) = '201705' AND b.fdate <= to_char(sysdate - 1, 'yyyymmdd')
+      AND a.process IN (5, 6) AND a.valid = 1
+      AND c.group_id = 1
+
+
+SELECT
+  a.user_id,
+  max(b.id)   AS crm_user_id,
+  max(c.id)   AS ia_id,
+  max(c.name) AS ia_name,
+  max(c.group_id)
+FROM tb_silver_user_stat@silver_std a
+  JOIN silver_consult.v_tb_crm_user@consul_std b
+    ON a.user_id = b.fa_id
+  JOIN silver_consult.tb_crm_ia@consul_std c
+    ON b.ia_id = c.id
+GROUP BY a.user_id
+
+
+SELECT
+  a.user_id,
+  max(b.id),
+  max(b.name),
+  max(b.group_id),
+  max(b.empid),
+  max(c.mintime)
+FROM silver_consult.tb_crm_dispatch_his@consul_std a
+  JOIN (SELECT
+          user_id,
+          min(create_time) AS mintime
+        FROM silver_consult.tb_crm_dispatch_his@consul_std
+        WHERE ia_id IS NOT NULL
+        GROUP BY user_id) c
+    ON a.user_id = c.user_id AND a.create_time = c.mintime
+  JOIN silver_consult.tb_crm_ia@consul_std b
+    ON a.ia_id = b.id
+  JOIN silver_consult.v_tb_crm_user@consul_std d
+    ON a.user_id = d.id
+  JOIN (SELECT
+          user_id,
+          min(open_account_time) AS open_account_time
+        FROM tb_silver_user_stat@silver_std
+        WHERE partneR_id IN ('pmec', 'hht')
+        GROUP BY user_id) e
+    ON d.fa_id = e.user_id
+WHERE to_char(c.mintime, 'yyyymmdd') = 20170525
+      AND to_char(open_account_time, 'yyyymmdd') = 20170525
+      AND b.group_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 117, 116)
+GROUP BY a.user_id
+
+
+SELECT *
+FROM silver_consult.v_tb_crm_user@consul_std
+
+
+SELECT *
+FROM
+  (SELECT *
+   FROM (SELECT
+           user_id,
+           min(open_account_time) AS open_account_time
+         FROM tb_silver_user_stat@silver_std
+         GROUP BY user_id)
+   WHERE to_char(open_account_time, 'yyyymmdd') = 20170525) a
+  JOIN silver_consult.v_tb_crm_user@consul_std b
+    ON a.user_id = b.fa_id
+  JOIN
+  (SELECT
+     user_id,
+     min(create_time) AS mintime
+   FROM silver_consult.tb_crm_dispatch_his@consul_std
+   GROUP BY user_id) c
+    ON b.id = c.user_id
 
 SELECT *
 FROM tb_silver_user_stat@silver_std
-WHERE user_name = 'zlf06@126.com'
 
 
-SELECT
-  bb.ia_id,
-  bb.ia_name,
-  bb.group_id,
-  sum(cc.流转后交易额)                                AS 周流转后交易额,
-  sum(aa.hht_net_value_sub + aa.hht_net_in_sub) AS 周激活资金,
-  sum(dd.流转后净入金)                                AS 周流转后净入金
+SELECT *
+FROM info_silver.ods_crm_transfer_record
+WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170520 AND 20170526
+      AND firm_id IS NULL
 
+SELECT *
+FROM silver_consult.tb_crm_transfer_record@consul_std
+WHERE user_id = 1000655993
+
+
+SELECT *
+FROM info_silver.dw_user_account
+WHERE crm_user_id = '1000655993'
+
+SELECT *
+FROM silver_njs.history_transfer@silver_std
+WHERE firmid = 163170526070742
+
+
+SELECT *
+FROM tb_silver_user_stat@silver_std
+WHERE user_id = 92344558
+
+SELECT *
+FROM silver_njs.history_transfer@silver_std
+WHERE fdate = 20170526
+
+SELECT *
+FROM info_silver.dw_user_account
+
+
+
+
+
+-- 资源数
+SELECT count(DISTINCT b1.user_id)
 FROM
-  (SELECT *
-   FROM info_silver.ods_crm_transfer_record
-   WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 AND 20170505
-         AND PROCESS IN (5, 6) AND valid = 1) aa
-  JOIN info_silver.dw_user_account bb
-    ON aa.user_id = bb.crm_user_id AND aa.partner_id = bb.partner_id
-  LEFT JOIN
   (SELECT
-     A.firmid,
-     sum(A.contqty) AS 流转后交易额
-   FROM info_silver.ods_history_deal A
-     JOIN
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 AND 20170505
-            AND PROCESS IN (5, 6) AND valid = 1) b
-       ON A.firmid = b.firm_id
-   WHERE A.fdate BETWEEN 20170429 AND 20170505 AND
-         A.trade_time > b.submit_time
-   GROUP BY A.firmid) cc
-    ON aa.firm_id = cc.firmid
-  LEFT JOIN
-  (SELECT
-     A.firmid,
-     sum(CASE WHEN A.inorout = 'A'
-       THEN A.inoutmoney
-         WHEN A.inorout = 'B'
-           THEN -A.inoutmoney END) AS 流转后净入金
-   FROM silver_njs.history_transfer@silver_std A
-     JOIN
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 AND 20170505
-            AND PROCESS IN (5, 6) AND valid = 1) b
-       ON A.firmid = b.firm_id
-   WHERE A.fdate BETWEEN 20170429 AND 20170505 AND
-         A.realdate > b.submit_time
-   GROUP BY a.firmid) dd
-    ON aa.firm_id = dd.firmid
-WHERE bb.group_id IN (1, 7, 8, 111, 118)
-GROUP BY
-  bb.ia_id,
-  bb.ia_name,
-  bb.group_id
+     a1.user_id,
+     a1.firsttime
+   FROM
+     (SELECT
+        dis.user_id,
+        min(dis.create_time) AS firsttime
+      FROM silver_consult.tb_crm_dispatch_his@consul_std dis
+      WHERE dis.ia_id IS NOT NULL
+      GROUP BY dis.user_id) a1
+   WHERE to_char(a1.firsttime, 'yyyymmdd') BETWEEN 20170422 AND 20170428) b1--首次分配时间
+
+  JOIN silver_consult.tb_crm_dispatch_his@consul_std dis ON b1.user_id = dis.user_id AND b1.firsttime = dis.create_time
+  JOIN silver_consult.tb_crm_ia@consul_std ia ON dis.ia_id = ia.id
+  JOIN silver_consult.v_tb_crm_user@consul_std user1 ON b1.user_id = user1.id AND user1.id IS NOT NULL
+
+WHERE ia.group_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 116, 117)
 
 
-SELECT
-  distinct a.crm_user_id,
-  d.firm_id,
-  a.real_name,
-  b.net_assets,
-  c.submit_time
-FROM info_silver.dw_user_account a
-  left join info_silver.dw_user_account d
-  on a.user_id = d.user_id
-  and d.partner_id = 'hht'
-left join silver_njs.tb_silver_data_center@silver_std b
-  on d.firm_id = b.firmid
-  and b.hdate = 20170519
-  left join info_silver.ods_crm_transfer_record c
-  on a.crm_user_id = c.user_id
-  and c.valid=1 and c.process in (5,6)
-WHERE a.ia_name = '程序'
-
-
-
-SELECT
-  sum(e.margin) as 准备金,
-  sum(d.net_zcmoney) as 净资产
-FROM (SELECT *
-      FROM info_silver.dw_user_account
-      WHERE partner_id = 'hht') a
-  JOIN (SELECT
-          firmid,
-          hdate,
-          sum(net_assets) net_zcmoney
-        FROM silver_njs.tb_silver_data_center@silver_std
-        WHERE hdate between 20170513 and 20170519 AND partner_id = 'hht'
-        GROUP BY firmid,hdate) d
-    ON a.firm_id = d.firmid
-  left JOIN (SELECT
-          trader_id,
-          to_char(trade_date,'yyyymmdd') as fdate,
-          sum(margin) margin
-        FROM NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
-        WHERE status = 1 AND to_char(trade_date, 'yyyymmdd') between 20170513 and 20170519
-        GROUP BY trader_id,to_char(trade_date,'yyyymmdd') ) e
-    ON a.firm_id = e.trader_id AND e.fdate = d.hdate
-where a.group_id in (111
-
-
-
-
-
-SELECT
-  a1.ia_id,
-  a1.group_id,
-  a1.ia_name,
-  a1.总接手资金,
-  a2.本周激活资金,
-  round(a3.当日流转当日达标率,2),
-  round(a4.当日流转当日开仓率,2),
-  round(a5.周流转后交易额/a5.周激活资金,2) as 本周资金利用率,
-  round(a6.月流转后交易额/a6.月激活资金,2) as 本月资金利用率,
-  a5.周流转后净入金,
-  a6.本月净入金 as 月流转后净入金,
-  round(a8.本周截至当日达标率,2),
-  sum(a2.本周流转单) AS 流转单数
+--开单资源数
+SELECT count(DISTINCT b1.user_id) from
+( SELECT
+a1.user_id,
+a1.firsttime
 FROM
-  (
-    SELECT
-      a.ia_id,
-      a.group_id,
-      a.ia_name,
-      sum(CASE WHEN b.partner_id = 'pmec'
-        THEN b.pmec_net_in_sub + b.pmec_net_value_sub
-          WHEN b.partner_id = 'hht'
-            THEN b.hht_net_in_sub + b.hht_net_in_sub END) AS 总接手资金,
-      count(DISTINCT a.user_id)                           AS num
-    FROM info_silver.dw_user_account a
-      JOIN info_silver.ods_crm_transfer_record b
-        ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-    WHERE a.group_id IN (1, 7, 8, 111,118) AND b.valid = 1 AND b.process IN (5, 6)
-    GROUP BY a.ia_id, a.group_id, a.ia_name
-  ) a1
-  LEFT JOIN
+( SELECT
+dis.user_id,
+MIN (dis.create_time) AS firsttime
+FROM silver_consult.tb_crm_dispatch_his@consul_std dis
+WHERE dis.ia_id IS NOT NULL
+GROUP BY dis.user_id) a1
+WHERE to_char(a1.firsttime, 'yyyymmdd') BETWEEN 20170422 AND 20170428) b1  --首次分配时间
 
-  (SELECT
-     a.ia_id,
-     a.group_id,
-     a.ia_name,
-     sum(CASE WHEN b.partner_id = 'pmec'
-       THEN b.pmec_net_in_sub + b.pmec_net_value_sub
-         WHEN b.partner_id = 'hht'
-           THEN b.hht_net_in_sub + b.hht_net_value_sub END) AS 本周激活资金,
-    count(distinct b.user_id) as 本周流转单
-   FROM info_silver.dw_user_account a
-     JOIN info_silver.ods_crm_transfer_record b
-       ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-   WHERE a.group_id IN (1, 7, 8, 111,118) AND
-         to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-             sysdate - 1, 'yyyymmdd')
-         AND b.valid = 1 AND b.process IN (5, 6)
-   GROUP BY a.ia_id, a.group_id, a.ia_name
-  ) a2
-    ON a1.ia_id = a2.ia_id
-  LEFT JOIN
+JOIN silver_consult.tb_crm_dispatch_his@consul_std dis ON b1.user_id = dis.user_id AND b1.firsttime = dis.create_time
+JOIN silver_consult.tb_crm_ia@consul_std ia ON dis.ia_id = ia.id
+JOIN silver_consult.v_tb_crm_user@consul_std user1 ON b1.user_id = user1.id AND user1.id IS NOT NULL
+JOIN info_silver.ods_crm_transfer_record trans ON b1.user_id = trans.user_id
 
-  (SELECT
-     bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name,
-     round(sum(nvl(aaa.当日达标用户数, 0)) / sum(bbb.当日流转用户数), 4) AS 当日流转当日达标率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当日流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-                sysdate - 1, 'yyyymmdd')
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当日达标用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-               sysdate - 1, 'yyyymmdd')
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND (deal.trade_time > trans.submit_time)
-           AND deal.fdate = to_char(trans.submit_time, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 100)
-            OR (aa.num1 < 200000 AND aa.num2 >= 200)
-            OR (aa.num1 < 300000 AND aa.num2 >= 500)
-            OR (aa.num1 < 500000 AND aa.num2 >= 1000)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 1500)
-            OR (aa.num1 >= 1000000 AND aa.num2 >= 2000)
-
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-    group by bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name
-  ) a3
-    ON a1.ia_id = a3.ia_id
-  LEFT JOIN
-  (SELECT
-     bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name,
-     round(sum(nvl(aaa.当日流转开仓用户数, 0)) / sum(bbb.当日流转用户数), 4) AS 当日流转当日开仓率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当日流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-                sysdate - 1, 'yyyymmdd')
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当日流转开仓用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-               sysdate - 1, 'yyyymmdd')
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND (deal.trade_time > trans.submit_time)
-           AND deal.fdate = to_char(trans.submit_time, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 30)
-            OR (aa.num1 < 200000 AND aa.num2 >= 60)
-            OR (aa.num1 < 300000 AND aa.num2 >= 120)
-            OR (aa.num1 < 500000 AND aa.num2 >= 180)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 240)
-            OR (aa.num1 < 2000000 AND aa.num2 >= 480)
-            OR (aa.num1 >= 2000000 AND aa.num2 >= 720)
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-    group by bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name
-  ) a4
-    ON a1.ia_id = a4.ia_id
-
-  LEFT JOIN
-
-  (SELECT
-     bb.ia_id,
-    bb.ia_name,
-     bb.group_id,
-     sum(cc.流转后交易额)                                AS 周流转后交易额,
-     sum(aa.hht_net_value_sub + aa.hht_net_in_sub)     AS 周激活资金,
-     sum(dd.流转后净入金)                                AS 周流转后净入金
-
-   FROM
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-          sysdate - 1, 'yyyymmdd')
-            AND PROCESS IN (5, 6) AND valid = 1) aa
-     JOIN info_silver.dw_user_account bb
-       ON aa.user_id = bb.crm_user_id AND aa.partner_id = bb.partner_id
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(A.contqty) AS 流转后交易额
-      FROM info_silver.ods_history_deal A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-          sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-          sysdate - 1, 'yyyymmdd') AND
-            A.trade_time > b.submit_time
-      GROUP BY A.firmid) cc
-       ON aa.firm_id = cc.firmid
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(CASE WHEN A.inorout = 'A'
-          THEN A.inoutmoney
-            WHEN A.inorout = 'B'
-              THEN -A.inoutmoney END) AS 流转后净入金
-      FROM silver_njs.history_transfer@silver_std A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-          sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-          sysdate - 1, 'yyyymmdd') AND
-            A.realdate > b.submit_time
-      GROUP BY a.firmid) dd
-       ON aa.firm_id = dd.firmid
-   WHERE bb.group_id IN (1, 7, 8, 111, 118)
-   GROUP BY
-     bb.ia_id,
-    bb.ia_name,
-     bb.group_id
-  ) a5
-    ON a1.ia_id = a5.ia_id
-  LEFT JOIN
-
-  (SELECT
-     bb.ia_id,
-     bb.ia_name,
-     bb.group_id,
-    sum(cc.本月流转后交易额) as 月流转后交易额,
-    sum(ee.上月底净资产) as 上月底净资产,
-    sum(dd.本月净入金) as 本月净入金,
-    sum(aa.hht_net_in_sub + aa.hht_net_value_sub) as 月激活资金
-   FROM
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'mm'),
-                                                             'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-            AND PROCESS IN (5, 6) AND valid = 1) aa
-     JOIN info_silver.dw_user_account bb
-       ON aa.user_id = bb.crm_user_id and aa.partner_id = bb.partner_id
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(A.contqty) AS 本月流转后交易额
-      FROM info_silver.ods_history_deal A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
-                                                                'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'mm'), 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd') AND
-            A.trade_time > b.submit_time
-      GROUP BY A.firmid) cc
-       ON aa.firm_id = cc.firmid
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(CASE WHEN A.inorout = 'A'
-          THEN A.inoutmoney
-            WHEN A.inorout = 'B'
-              THEN -A.inoutmoney END) AS 本月净入金
-      FROM silver_njs.history_transfer@silver_std A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
-                                                                'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'mm'), 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd') AND
-            A.realdate > b.submit_time
-      GROUP BY a.firmid) dd
-       ON aa.firm_id = dd.firmid
-     LEFT JOIN
-     (SELECT
-        A.firm_id,
-        sum(a.net_zcmoney) AS 上月底净资产
-      FROM info_silver.ods_order_zcmoney A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
-                                                                'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firm_id = b.firm_id
-      WHERE A.fdate = (SELECT CASE WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期日'
-        THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 2, 'yyyymmdd')
-                              WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期六'
-                                THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 1, 'yyyymmdd')
-                              ELSE to_char(trunc(sysdate - 1, 'mm') - 1, 'yyyymmdd') END
-                       FROM dual)
-      GROUP BY a.firm_id) ee
-       ON aa.firm_id = ee.firm_id
-   WHERE bb.group_id IN (1, 7, 8, 111,118)
-   GROUP BY bb.ia_id, bb.ia_name, bb.group_id
-  ) a6
-    ON a1.ia_id = a6.ia_id
-  left join
-     (SELECT
-     bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name,
-     round(sum(nvl(aaa.当周达标用户数, 0)) / sum(bbb.当周流转用户数), 4) AS 本周截至当日达标率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当周流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-                sysdate - 1, 'yyyymmdd')
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当周达标用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-               sysdate - 1, 'yyyymmdd')
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND (deal.trade_time > trans.submit_time)
-           AND deal.fdate <= to_char(sysdate - 1, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 100)
-            OR (aa.num1 < 200000 AND aa.num2 >= 200)
-            OR (aa.num1 < 300000 AND aa.num2 >= 500)
-            OR (aa.num1 < 500000 AND aa.num2 >= 1000)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 1500)
-            OR (aa.num1 >= 1000000 AND aa.num2 >= 2000)
-
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-       group by bbb.ia_id,
-     bbb.group_id,
-     bbb.ia_name
-  ) a8
-    ON a1.ia_id = a8.ia_id
-
-
-GROUP BY a1.ia_id,
-  a1.group_id,
-  a1.ia_name,
-  a1.总接手资金,
-  a2.本周激活资金,
-  a3.当日流转当日达标率,
-  a4.当日流转当日开仓率,
-  a5.周流转后交易额,
-  a5.周激活资金,
-  a6.月流转后交易额,
-  a6.月激活资金,
-  a5.周流转后净入金,
-  a6.本月净入金,
-  a8.本周截至当日达标率
+WHERE ia.group_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 116, 117)
+AND trans.submit_time BETWEEN b1.firsttime+7 AND b1.firsttime+14       --开单时间
+      and trans.process in (5,6) and trans.valid =1
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-SELECT
-  a1.group_id,
-  a1.总接手资金,
-  a2.本周激活资金,
-  round(a3.当日流转当日达标率,2),
-  round(a4.当日流转当日开仓率,2),
-  round(a5.周流转后交易额/a5.周激活资金,2) as 本周资金利用率,
-  round(a6.月流转后交易额/a6.月激活资金,2) as 本月资金利用率,
-  a5.周流转后净入金,
-  a6.本月净入金 as 月流转后净入金,
-  round(a8.本周截至当日达标率,2),
-  sum(a2.本周流转单) AS 流转单数
-FROM
-  (
-    SELECT
-      a.group_id,
-      sum(CASE WHEN b.partner_id = 'pmec'
-        THEN b.pmec_net_in_sub + b.pmec_net_value_sub
-          WHEN b.partner_id = 'hht'
-            THEN b.hht_net_in_sub + b.hht_net_in_sub END) AS 总接手资金,
-      count(DISTINCT a.user_id)                           AS num
-    FROM info_silver.dw_user_account a
-      JOIN info_silver.ods_crm_transfer_record b
-        ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-    WHERE a.group_id IN (1, 7, 8, 111,118) AND b.valid = 1 AND b.process IN (5, 6)
-    GROUP BY a.group_id
-  ) a1
-  LEFT JOIN
-
-  (SELECT
-     a.group_id,
-     sum(CASE WHEN b.partner_id = 'pmec'
-       THEN b.pmec_net_in_sub + b.pmec_net_value_sub
-         WHEN b.partner_id = 'hht'
-           THEN b.hht_net_in_sub + b.hht_net_value_sub END) AS 本周激活资金,
-    count(distinct b.user_id) as 本周流转单
-   FROM info_silver.dw_user_account a
-     JOIN info_silver.ods_crm_transfer_record b
-       ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-   WHERE a.group_id IN (1, 7, 8, 111,118) AND
-         to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-             sysdate - 1, 'yyyymmdd')
-         AND b.valid = 1 AND b.process IN (5, 6)
-   GROUP BY a.group_id
-  ) a2
-    ON a1.group_id = a2.group_id
-  LEFT JOIN
-
-  (SELECT
-     bbb.group_id,
-     round(sum(nvl(aaa.当日达标用户数, 0)) / sum(bbb.当日流转用户数), 4) AS 当日流转当日达标率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当日流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-                sysdate - 1, 'yyyymmdd')
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当日达标用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-               sysdate - 1, 'yyyymmdd')
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND deal.trade_time > trans.submit_time
-           AND deal.fdate = to_char(trans.submit_time, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 100)
-            OR (aa.num1 < 200000 AND aa.num2 >= 200)
-            OR (aa.num1 < 300000 AND aa.num2 >= 500)
-            OR (aa.num1 < 500000 AND aa.num2 >= 1000)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 1500)
-            OR (aa.num1 >= 1000000 AND aa.num2 >= 2000)
-
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-    group by bbb.group_id
-  ) a3
-    ON a1.group_id = a3.group_id
-  LEFT JOIN
-  (SELECT
-     bbb.group_id,
-     round(sum(nvl(aaa.当日流转开仓用户数, 0)) / sum(bbb.当日流转用户数), 4) AS 当日流转当日开仓率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当日流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-                sysdate - 1, 'yyyymmdd')
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当日流转开仓用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'd') + 1, 'yyyymmdd') AND to_char(
-               sysdate - 1, 'yyyymmdd')
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND (deal.trade_time > trans.submit_time)
-           AND deal.fdate = to_char(trans.submit_time, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 30)
-            OR (aa.num1 < 200000 AND aa.num2 >= 60)
-            OR (aa.num1 < 300000 AND aa.num2 >= 120)
-            OR (aa.num1 < 500000 AND aa.num2 >= 180)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 240)
-            OR (aa.num1 < 2000000 AND aa.num2 >= 480)
-            OR (aa.num1 >= 2000000 AND aa.num2 >= 720)
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-    group by bbb.group_id
-  ) a4
-    ON a1.group_id = a4.group_id
-
-  LEFT JOIN
-
-  (SELECT
-     bb.group_id,
-     sum(cc.流转后交易额)                                AS 周流转后交易额,
-     sum(aa.hht_net_value_sub + aa.hht_net_in_sub)     AS 周激活资金,
-     sum(dd.流转后净入金)                                AS 周流转后净入金
-
-   FROM
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 and 20170505
-            AND PROCESS IN (5, 6) AND valid = 1) aa
-     JOIN info_silver.dw_user_account bb
-       ON aa.user_id = bb.crm_user_id AND aa.partner_id = bb.partner_id
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(A.contqty) AS 流转后交易额
-      FROM info_silver.ods_history_deal A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 and 20170505
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN 20170429 and 20170505 AND
-            A.trade_time > b.submit_time
-      GROUP BY A.firmid) cc
-       ON aa.firm_id = cc.firmid
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(CASE WHEN A.inorout = 'A'
-          THEN A.inoutmoney
-            WHEN A.inorout = 'B'
-              THEN -A.inoutmoney END) AS 流转后净入金
-      FROM silver_njs.history_transfer@silver_std A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170429 and 20170505
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN 20170429 and 20170505 AND
-            A.realdate > b.submit_time
-      GROUP BY a.firmid) dd
-       ON aa.firm_id = dd.firmid
-   WHERE bb.group_id IN (1, 7, 8, 111, 118)
-   GROUP BY
-     bb.group_id
-  ) a5
-    ON a1.group_id= a5.group_id
-  LEFT JOIN
-
-  (SELECT
-     bb.group_id,
-    sum(cc.本月流转后交易额) as 月流转后交易额,
-    sum(ee.上月底净资产) as 上月底净资产,
-    sum(dd.本月净入金) as 本月净入金,
-    sum(aa.hht_net_in_sub + aa.hht_net_value_sub) as 月激活资金
-   FROM
-     (SELECT *
-      FROM info_silver.ods_crm_transfer_record
-      WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(sysdate - 1, 'mm'),
-                                                             'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-            AND PROCESS IN (5, 6) AND valid = 1) aa
-     JOIN info_silver.dw_user_account bb
-       ON aa.user_id = bb.crm_user_id and aa.partner_id = bb.partner_id
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(A.contqty) AS 本月流转后交易额
-      FROM info_silver.ods_history_deal A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
-                                                                'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'mm'), 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd') AND
-            A.trade_time > b.submit_time
-      GROUP BY A.firmid) cc
-       ON aa.firm_id = cc.firmid
-     LEFT JOIN
-     (SELECT
-        A.firmid,
-        sum(CASE WHEN A.inorout = 'A'
-          THEN A.inoutmoney
-            WHEN A.inorout = 'B'
-              THEN -A.inoutmoney END) AS 本月净入金
-      FROM silver_njs.history_transfer@silver_std A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN to_char(trunc(add_months(sysdate - 1, -1), 'mm'),
-                                                                'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd')
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firmid = b.firm_id
-      WHERE A.fdate BETWEEN to_char(trunc(sysdate - 1, 'mm'), 'yyyymmdd') AND to_char(sysdate - 1, 'yyyymmdd') AND
-            A.realdate > b.submit_time
-      GROUP BY a.firmid) dd
-       ON aa.firm_id = dd.firmid
-     LEFT JOIN
-     (SELECT
-        A.firm_id,
-        sum(a.net_zcmoney) AS 上月底净资产
-      FROM info_silver.ods_order_zcmoney A
-        JOIN
-        (SELECT *
-         FROM info_silver.ods_crm_transfer_record
-         WHERE to_char(submit_time, 'yyyymmdd') BETWEEN 20170513 and 20170519
-               AND PROCESS IN (5, 6) AND valid = 1) b
-          ON A.firm_id = b.firm_id
-      WHERE A.fdate = (SELECT CASE WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期日'
-        THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 2, 'yyyymmdd')
-                              WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期六'
-                                THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 1, 'yyyymmdd')
-                              ELSE to_char(trunc(sysdate - 1, 'mm') - 1, 'yyyymmdd') END
-                       FROM dual)
-      GROUP BY a.firm_id) ee
-       ON aa.firm_id = ee.firm_id
-   WHERE bb.group_id IN (1, 7, 8, 111,118)
-   GROUP BY  bb.group_id
-  ) a6
-    ON a1.group_id = a6.group_id
-  left join
-     (SELECT
-     bbb.group_id,
-     round(sum(nvl(aaa.当周达标用户数, 0)) / sum(bbb.当周流转用户数), 4) AS 本周截至当日达标率
-   FROM
-     (SELECT
-        a.ia_id,
-        a.group_id,
-        a.ia_name,
-        count(b.user_id) AS 当周流转用户数
-      FROM
-        info_silver.dw_user_account a
-        JOIN info_silver.ods_crm_transfer_record b
-          ON a.crm_user_id = b.useR_id AND a.partner_id = B.partner_id
-      WHERE a.group_id IN (1, 7, 8, 111,118) AND
-            to_char(b.submit_time, 'yyyymmdd') BETWEEN 20170513 and 20170519
-            AND b.valid = 1 AND b.process IN (5, 6)
-      GROUP BY a.ia_id, a.group_id, a.ia_name) bbb
-     LEFT JOIN
-     (SELECT
-        aa.group_id,
-        aa.ia_id,
-        aa.ia_name,
-        count(DISTINCT aa.user_id) AS 当周达标用户数
-      FROM
-        (SELECT
-           trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name,
-           max(trans.HHT_NET_VALUE_SUB + trans.HHT_NET_IN_SUB) AS num1,
-           sum(CASE WHEN deal.wareid = 'LSAG100g'
-             THEN deal.contnum END)                            AS num2
-         FROM info_silver.ods_crm_transfer_record trans
-           JOIN info_silver.dw_user_account a
-             ON trans.user_id = a.crm_user_id
-                AND a.partner_id = trans.partner_id
-           JOIN (SELECT
-                   wareid,
-                   contnum,
-                   fdate,
-                   trade_time,
-                   firmid
-                 FROM info_silver.ods_history_deal
-                 WHERE fdate >= '20160901' AND partner_id = 'hht') deal
-             ON trans.firm_id = deal.firmid
-         WHERE
-           to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170513 and 20170519
-           AND a.group_id IN (1, 7, 8, 111,118)
-           AND trans.process IN (5, 6) AND trans.valid = 1
-           AND (deal.trade_time > trans.submit_time)
-           AND deal.fdate <= to_char(sysdate - 1, 'yyyymmdd')
-         GROUP BY trans.user_id,
-           a.group_id,
-           a.ia_id,
-           a.ia_name) aa
-      WHERE (aa.num1 < 100000 AND aa.num2 >= 100)
-            OR (aa.num1 < 200000 AND aa.num2 >= 200)
-            OR (aa.num1 < 300000 AND aa.num2 >= 500)
-            OR (aa.num1 < 500000 AND aa.num2 >= 1000)
-            OR (aa.num1 < 1000000 AND aa.num2 >= 1500)
-            OR (aa.num1 >= 1000000 AND aa.num2 >= 2000)
-
-      GROUP BY aa.group_id,
-        aa.ia_id,
-        aa.ia_name) aaa
-       ON aaa.ia_id = bbb.ia_id
-       group by bbb.group_id
-  ) a8
-    ON a1.group_id = a8.group_id
-
-
-GROUP BY
-  a1.group_id,
-  a1.总接手资金,
-  a2.本周激活资金,
-  a3.当日流转当日达标率,
-  a4.当日流转当日开仓率,
-  a5.周流转后交易额,
-  a5.周激活资金,
-  a6.月流转后交易额,
-  a6.月激活资金,
-  a5.周流转后净入金,
-  a6.本月净入金,
-  a8.本周截至当日达标率)

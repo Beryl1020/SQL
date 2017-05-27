@@ -1,14 +1,14 @@
 SELECT
-  sum(CASE WHEN PARTNER_ID = 'njs' AND fdate BETWEEN 20170401 AND 20170430
+  sum(CASE WHEN PARTNER_ID = 'njs' AND fdate BETWEEN 20161001 AND 20161231
     THEN CONTQTY END),
   --pmec/njs/平台交易额
-  sum(CASE WHEN PARTNER_ID = 'pmec' AND fdate BETWEEN 20170401 AND 20170430
+  sum(CASE WHEN PARTNER_ID = 'pmec' AND fdate BETWEEN 20161001 AND 20161231
     THEN CONTQTY END),
-  sum(CASE WHEN PARTNER_ID = 'hht' AND fdate BETWEEN 20170401 AND 20170430
+  sum(CASE WHEN PARTNER_ID = 'hht' AND fdate BETWEEN 20161001 AND 20161231
     THEN CONTQTY END),
-  sum(CASE WHEN PARTNER_ID = 'sge' AND fdate BETWEEN 20170401 AND 20170430
+  sum(CASE WHEN PARTNER_ID = 'sge' AND fdate BETWEEN 20161001 AND 20161231
     THEN CONTQTY END),
-  sum(CASE WHEN fdate BETWEEN 20170401 AND 20170430
+  sum(CASE WHEN fdate BETWEEN 20161001 AND 20161231
     THEN CONTQTY END)
 FROM info_silver.ods_history_deal
 
@@ -194,13 +194,22 @@ SELECT
   --交易用户
   count(DISTINCT CASE
                  WHEN --deal.partner_id = 'pmec' AND
-                      deal.fdate BETWEEN 20170401 AND 20170430
+                      deal.fdate BETWEEN '20161001' and '20161231'
                    THEN deal.user_id END) AS cnt1,
   count(DISTINCT CASE
-                 WHEN deal.partner_id = 'hht' AND deal.fdate BETWEEN 20170401 AND 20170430
-                   THEN deal.firmid END) AS cnt2
+                 WHEN deal.partner_id = 'hht' AND deal.fdate BETWEEN '20161001' and '20161231'
+                   THEN deal.firmid END) AS cnt2,
+  count(DISTINCT CASE
+                 WHEN deal.partner_id = 'pmec' AND deal.fdate BETWEEN '20161001' and '20161231'
+                   THEN deal.firmid END) AS cnt3,
+  count(DISTINCT CASE
+                 WHEN deal.partner_id = 'njs'   AND deal.fdate BETWEEN '20161001' and '20161231'
+                   THEN deal.firmid END) AS cnt4,
+  count(DISTINCT CASE
+                 WHEN deal.partner_id = 'sge' AND deal.fdate BETWEEN '20161001' and '20161231'
+                   THEN deal.firmid END) AS cnt5
 FROM info_silver.ods_history_deal deal
-WHERE deal.fdate BETWEEN 20170401 AND 20170430
+WHERE deal.fdate BETWEEN '20161001' and '20161231'
 --   and deal.ordersty<>151 --非强平
 
 
@@ -216,7 +225,7 @@ FROM
      1                  AS subid,
      sum(io.inoutmoney) AS money -- 总入金
    FROM silver_njs.history_transfer@silver_std io
-   WHERE io.inorout = 'A' AND io.partnerid = 'pmec' AND io.fdate BETWEEN 20170401 AND 20170431
+   WHERE io.inorout = 'A' AND io.partnerid = 'pmec' AND io.fdate BETWEEN 20161001 AND 20161231
    GROUP BY 1) sub1
   LEFT JOIN
   (SELECT
@@ -226,7 +235,7 @@ FROM
          WHEN io.inorout = 'B'
            THEN (-1) * inoutmoney END) AS money --净入金
    FROM silver_njs.history_transfer@silver_std io
-   WHERE io.partnerid = 'pmec' AND io.fdate BETWEEN 20170401 AND 20170431
+   WHERE io.partnerid = 'pmec' AND io.fdate BETWEEN 20161001 AND 20161231
    GROUP BY 2) sub2
     ON sub1.subid <> sub2.subid
   LEFT JOIN
@@ -234,7 +243,7 @@ FROM
      3                 AS subid,
      sum(deal.CONTQTY) AS money -- 总交易额
    FROM info_silver.ods_history_deal deal
-   WHERE deal.partner_id = 'pmec' AND deal.fdate BETWEEN 20170401 AND 20170431
+   WHERE deal.partner_id = 'pmec' AND deal.fdate BETWEEN 20170101 AND 20170331
 
    GROUP BY 3) sub3
     ON sub1.subid <> sub3.subid
@@ -251,7 +260,7 @@ FROM
    FROM info_silver.ods_history_deal deal
    WHERE deal.partner_id = 'pmec'
          AND deal.operation_src = 'open'
-         AND deal.fdate BETWEEN 20170401 AND 20170431
+         AND deal.fdate BETWEEN 20170101 AND 20170331
    GROUP BY 4) sub4
     ON sub1.subid <> sub4.subid
   LEFT JOIN
@@ -260,7 +269,7 @@ FROM
      sum(CASE WHEN flow.changetype = 8
        THEN (-1) * flow.AMOUNT END) AS money -- 滞纳金
    FROM silver_njs.pmec_zj_flow@silver_std flow
-   WHERE to_char(flow.fdate, 'yyyymmdd') BETWEEN 20170401 AND 20170431
+   WHERE to_char(flow.fdate, 'yyyymmdd') BETWEEN 20170101 AND 20170331
    GROUP BY 5) sub5
     ON sub1.subid <> sub5.subid
   LEFT JOIN
@@ -269,7 +278,7 @@ FROM
      sum(CASE WHEN flow.changetype IN (9, 10)
        THEN (-1) * flow.amount END) AS money -- 头寸+点差
    FROM silver_njs.pmec_zj_flow@silver_std flow
-   WHERE to_char(flow.fdate, 'yyyymmdd') BETWEEN 20170401 AND 20170431
+   WHERE to_char(flow.fdate, 'yyyymmdd') BETWEEN 20170101 AND 20170331
    GROUP BY 6) sub6
     ON sub1.subid <> sub6.subid
 
@@ -285,6 +294,12 @@ GROUP BY type
 ORDER BY type
 
 -- 7 滞纳金 -5.-6 盈亏 -3.-4手续费↑
+
+SELECT
+  sum(-amount)
+FROM NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
+WHERE to_char(create_time - 0.25, 'yyyymmdd') BETWEEN 20170401 AND 20170430
+and type in (5,6)
 
 
 SELECT sum(weight) * 8

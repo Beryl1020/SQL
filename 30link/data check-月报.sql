@@ -7,22 +7,22 @@ GROUP BY partner_id
 
 
 SELECT
-  sum(CASE WHEN aa.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105)
-    THEN bb.contqty END),
-  --电销、微销交易额
-  sum(CASE WHEN aa.fgroup_id IN (106, 112, 113, 114)
-    THEN bb.contqty END)
+  --sum(CASE WHEN aa.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105,116,117,106) THEN bb.contqty END), --电销、微销交易额
+  --sum(CASE WHEN aa.fgroup_id IN (112, 113, 114) THEN bb.contqty END)
+sum(contqty)
 FROM
-  (SELECT
+  (SELECT user_id,
      firm_id,
      fia_id,
      fgroup_id,
      submit_time
    FROM info_silver.ods_crm_transfer_record
-   WHERE to_char(submit_time, 'yyyymmdd') <= 20170430 AND process IN (5, 6) AND valid = 1) aa
+   WHERE to_char(submit_time, 'yyyymmdd')<=  20170430 AND process IN (5, 6) AND valid = 1) aa
+  join info_silver.dw_user_account dd
+  on aa.useR_id = dd.crm_user_id and dd.partner_id in('hht','pmec')
   JOIN info_silver.ods_history_deal bb
-    ON aa.firm_id = bb.firmid
-WHERE bb.fdate BETWEEN 20170401 AND 20170430
+    ON dd.firm_id = bb.firmid
+WHERE bb.fdate BETWEEN '20170401' AND '20170430'
       AND aa.submit_time < bb.trade_time
 
 

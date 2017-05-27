@@ -88,7 +88,8 @@ group by ia.id, ia.name, ia.group_id
 select to_char(submit_time,'yyyymm'), to_char(add_months(submit_time,-1),'yyyymm') from info_silver.ods_crm_transfer_record
 
 select ia.id, ia.name, ia.group_id,
-    sum(case when to_char(ia.create_time,'yyyymm') = to_char(add_months(trans.submit_time,0),'yyyymm') then trans.pmec_net_value_sub+trans.pmec_net_in_sub end),              --本月开单投顾入职时间分布
+    sum(case when to_char(ia.create_time,'yyyymm') = to_char(add_months(trans.submit_time,0),'yyyymm')
+      then trans.pmec_net_value_sub+trans.pmec_net_in_sub end),                            --本月开单投顾入职时间分布
   sum(case when to_char(ia.create_time,'yyyymm') = to_char(add_months(trans.submit_time,-1),'yyyymm') then trans.pmec_net_value_sub+trans.pmec_net_in_sub end),
   sum(case when to_char(ia.create_time,'yyyymm') = to_char(add_months(trans.submit_time,-2),'yyyymm') then trans.pmec_net_value_sub+trans.pmec_net_in_sub end),
   sum(case when to_char(ia.create_time,'yyyymm') = to_char(add_months(trans.submit_time,-3),'yyyymm') then trans.pmec_net_value_sub+trans.pmec_net_in_sub end),
@@ -102,7 +103,7 @@ select ia.id, ia.name, ia.group_id,
   from info_silver.tb_crm_ia ia
 left join  info_silver.ods_crm_transfer_record trans
   on trans.fia_id=ia.id
-where to_char(trans.submit_time,'yyyymmdd') between 20170101 and 20170131
+where to_char(trans.submit_time,'yyyymmdd') between 20170401 and 20170431
   and ia.name  not like '%资源%'
   and ia.status=1
 --and ia.group_id in (2,3,4,5,6,9,10,11,12,105)

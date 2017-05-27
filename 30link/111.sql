@@ -35,7 +35,7 @@ FROM silver_consult.tb_crm_tag@consul_std             --17
 SELECT *
 FROM silver_consult.tb_crm_tag_user_rel@consul_std    --18
 SELECT *
-FROM info_silver.pmec_zj_flow
+FROM info_silver.pmec_zj_flow where to_char(fdate,'yyyymm') = '201703' and changetype in (3,4) and amount =0
 SELECT *
 FROM info_silver.edw_fund_fact_d
 
@@ -44,7 +44,7 @@ FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_user_fact_d
 SELECT *
-FROM info_silver.dw_user_account   where firm_id in ('163170502814036','163170425657593','163170502335160','163170502498103')                   --史上最全user表
+FROM info_silver.dw_user_account         --史上最全user表
 SELECT *
 FROM silver_njs.pmec_account_info@silver_std
 SELECT *
@@ -54,25 +54,44 @@ FROM NSIP_ACCOUNT.TB_NSIP_A_FUNDS_AFTER_SETTLE@LINK_NSIP_ACCOUNT --HHT净资产
 SELECT *
 FROM NSIP_ACCOUNT.TB_NSIP_ACCOUNT_CHARGE_ORDER@LINK_NSIP_ACCOUNT --HHT净入金
 SELECT *
-FROM info_silver.tb_nsip_t_filled_order where to_char(trade_time,'yyyymmdd')=20170427
-
-select * from info_silver.tb_silver_account where to_char(trade_time,'yyyymmdd')=20170426
+FROM info_silver.tb_nsip_t_filled_order
 
 
-select * from NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE
+SELECT *
+FROM info_silver.tb_silver_account
 
 
-select * from NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
-select * from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
 
-select * from info_silver.ods_order_zcmoney where partner_id = 'hht' and fdate = '20170503' and firm_id= '163170502814036'
+SELECT *
+FROM NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE  --实时交易表
 
-select * from info_silver.edw_fund_fact_d  where to_char(stat_date,'yyyymmdd') = '20170503'
-select * from info_silver.order_fund_silver
 
-select * from info_silver.tb_nsip_a_funds_after_settle
+SELECT *
+FROM NSIP_TRADE.TB_NSIP_T_POSITION_DETAIL_H@LINK_NSIP_TRADE
+SELECT *
+FROM NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
 
-select * from SILVER_NJS.HISTORY_DEAL@SILVERONLINE_LINK
+SELECT *
+FROM info_silver.ods_order_zcmoney where fdate = 20170526 and partner_id = 'hht'
+
+
+SELECT *
+FROM info_silver.edw_fund_fact_d
+
+SELECT *
+FROM info_silver.order_fund_silver
+
+SELECT *
+FROM info_silver.tb_nsip_a_funds_after_settle
+
+SELECT *
+FROM SILVER_NJS.HISTORY_DEAL@SILVERONLINE_LINK
+
+SELECT *
+FROM info_silver.rpt_crm_transfer_user_stat where to_char(stat_date,'yyyymmdd') = 20170526
+
+
+select * from info_silver.ods_crm_tel_record
 
 
 

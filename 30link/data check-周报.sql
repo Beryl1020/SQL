@@ -156,7 +156,7 @@ SELECT
         THEN pmec_net_value_sub + pmec_net_in_sub END) AS 激活资金,
   count(DISTINCT trans.firm_id)                        AS 流转单数
 FROM info_silver.ods_crm_transfer_record trans
-WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
+WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170520 AND 20170526
       AND trans.process IN (5, 6) AND trans.valid = 1;
 
 
@@ -206,7 +206,7 @@ FROM
            THEN deal.contnum * 8 END) AS money -- 点差
    FROM info_silver.ods_history_deal deal
    WHERE deal.partner_id = 'hht'
-         AND ((deal.operation_src = 'open' AND buyorsal = 'B') OR (deal.operation_src = 'close' AND buyorsal = 'S'))
+         AND buyorsal = 'B'
          AND deal.fdate BETWEEN '20170506' AND '20170512'
    GROUP BY 4) sub4
     ON sub1.subid <> sub4.subid

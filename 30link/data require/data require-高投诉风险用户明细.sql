@@ -72,7 +72,6 @@ FROM
      WHEN (aa.pmecasset < aa.hhtasset OR aa.pmecasset IS NULL)
        THEN aa.hhtasset END AS maxasset
    FROM
-
      (SELECT
        a.real_name,
         a.ia_id,
