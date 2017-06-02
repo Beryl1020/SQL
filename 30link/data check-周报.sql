@@ -32,7 +32,7 @@ UNION
      THEN CONTQTY END) AS p3,
    sum(CASE WHEN fdate BETWEEN 20170101 AND 20170512
      THEN CONTQTY END) AS p4
- FROM info_silver.ods_history_deal);   --平台周、月、季度、年总交易额
+ FROM info_silver.ods_history_deal); --平台周、月、季度、年总交易额
 
 
 -- Part 2. 平台基础数据
@@ -159,14 +159,12 @@ FROM info_silver.ods_crm_transfer_record trans
 WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170520 AND 20170526
       AND trans.process IN (5, 6) AND trans.valid = 1;
 
-
-
 -- Part 4. 龙商华泰数据
 SELECT
   sub1.money              AS 总入金,
   sub2.money              AS 净入金,
   sub3.money              AS 总交易额,
-  sub3.money * 0.00065     AS 手续费,
+  sub3.money * 0.00065    AS 手续费,
   sub4.money              AS 点差,
   sub5.money              AS 滞纳金,
   sub6.money - sub4.money AS 头寸
@@ -229,10 +227,6 @@ FROM
    GROUP BY 6) sub6
     ON sub1.subid <> sub6.subid;
 
-
-
-
-
 ----Part 5 投顾近5周交易额、交易人数、净入金、收入及其在广贵所占比
 
 SELECT
@@ -244,8 +238,7 @@ FROM
   (SELECT
 
      1               AS id,
-     sum(龙商交易额)      AS 投顾龙商交易额,
-     --后端投顾的广贵交易人数，广贵交易额
+     sum(龙商交易额)      AS 投顾龙商交易额,         --后端投顾的广贵交易人数，广贵交易额
      sum(龙商交易人数) / 5 AS 投顾龙商交易人数
    FROM
      (
@@ -253,7 +246,7 @@ FROM
 
          sum(deal.contqty)           AS 龙商交易额,
          count(DISTINCT deal.firmid) AS 龙商交易人数,
-         deal.fdate
+
        FROM info_silver.ods_history_deal deal
          JOIN info_silver.ods_crm_transfer_record trans
            ON deal.firmid = trans.firm_id
@@ -262,7 +255,6 @@ FROM
              AND deal.trade_time > trans.submit_time
              AND trans.process IN (5, 6) AND trans.valid = 1
              AND deal.partner_id = 'hht'
-       GROUP BY deal.fdate
      )
   ) aaa
   JOIN
@@ -305,9 +297,6 @@ FROM
           AND inout.fdate BETWEEN 20170506 AND 20170512
   ) ccc
     ON aaa.id <> ccc.id;
-
-
-
 
 -- Part 6 每周电销资源转化情况
 
@@ -398,7 +387,32 @@ FROM
   JOIN silver_consult.v_tb_crm_user@consul_std user1 ON b1.user_id = user1.id AND user1.id IS NOT NULL
 
 WHERE ia.group_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 116, 117) AND
-      user1.grade IN ('A', 'A紧急', 'A暂缓', 'B'); -- 新增A/B类资源
+      user1.grade IN ('A', 'A紧急', 'A暂缓', 'B')    -- 新增A/B类资源
+
+UNION ALL
+
+    SELECT
+  '七天开单率',
+  round(count(DISTINCT CASE WHEN b.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 116, 117)
+    THEN b.user_id END) / count(DISTINCT a.id), 5)
+FROM info_silver.tb_crm_user a
+  LEFT JOIN info_silver.ods_crm_transfer_record b
+    ON a.id = b.user_id
+       AND b.submit_time BETWEEN a.create_time AND a.create_time + 7
+WHERE to_char(a.create_time, 'yyyymmdd') BETWEEN  20170513 AND 20170519
+
+    union all
+SELECT
+  '十四天开单率',
+  round(count(DISTINCT CASE WHEN b.fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105, 106, 116, 117)
+    THEN b.user_id END) / count(DISTINCT a.id), 5)
+FROM info_silver.tb_crm_user a
+  LEFT JOIN info_silver.ods_crm_transfer_record b
+    ON a.id = b.user_id
+       AND b.submit_time BETWEEN a.create_time AND a.create_time + 14
+WHERE to_char(a.create_time, 'yyyymmdd') BETWEEN  20170513 AND 20170519
+
+
 
 
 -- Part 7.  每周微销资源转化情况
@@ -438,7 +452,7 @@ WHERE (aa.num1 < 100000 AND aa.num2 >= 30)
       OR (aa.num1 < 500000 AND aa.num2 >= 180)
       OR (aa.num1 < 1000000 AND aa.num2 >= 240)
       OR (aa.num1 < 2000000 AND aa.num2 >= 480)
-      OR (aa.num1 >= 2000000 AND aa.num2 >= 720)      ;                      ---  有效开仓
+      OR (aa.num1 >= 2000000 AND aa.num2 >= 720); ---  有效开仓
 
 
 -- Part 8.  后端维护用户资金、出入金及交易情况
@@ -458,14 +472,16 @@ FROM
   (
     SELECT
 
-      trans.cur_bgroup_id                                        AS id,
-      sum(case when partner_id = 'hht' then trans.hht_net_value_sub + trans.hht_net_in_sub
-        when partner_id = 'pmec' then trans.pmec_net_value_sub +trans.pmec_net_in_sub end)        AS 总接手资金,
+      trans.cur_bgroup_id                                              AS id,
+      sum(CASE WHEN partner_id = 'hht'
+        THEN trans.hht_net_value_sub + trans.hht_net_in_sub
+          WHEN partner_id = 'pmec'
+            THEN trans.pmec_net_value_sub + trans.pmec_net_in_sub END) AS 总接手资金,
       sum(CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
-        THEN trans.hht_net_value_sub + trans.hht_net_in_sub END) AS 本周接收资金,
-      count(DISTINCT trans.user_id)                              AS 服务用户数,
+        THEN trans.hht_net_value_sub + trans.hht_net_in_sub END)       AS 本周接收资金,
+      count(DISTINCT trans.user_id)                                    AS 服务用户数,
       count(DISTINCT CASE WHEN to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170506 AND 20170512
-        THEN trans.user_id END)                                  AS 本周新增服务用户数
+        THEN trans.user_id END)                                        AS 本周新增服务用户数
     FROM info_silver.ods_crm_transfer_record trans
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111, 118)
           AND trans.process IN (5, 6) AND trans.valid = 1
@@ -482,8 +498,13 @@ FROM
       sum(CASE WHEN inout.inorout = 'B'
         THEN inout.inoutmoney END) AS 总出金量
     FROM info_silver.ods_crm_transfer_record trans
-      join (select firm_id ,crm_user_id,partner_id from info_silver.dw_user_account where partner_id in ('pmec','hht')) user1
-      on trans.user_id = user1.crm_user_id
+      JOIN (SELECT
+              firm_id,
+              crm_user_id,
+              partner_id
+            FROM info_silver.dw_user_account
+            WHERE partner_id IN ('pmec', 'hht')) user1
+        ON trans.user_id = user1.crm_user_id
       JOIN silver_njs.history_transfer@silver_std inout
         ON user1.firm_id = inout.firmid
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111, 118)
@@ -501,8 +522,13 @@ FROM
       trans.cur_bgroup_id           AS id,
       count(DISTINCT trans.useR_id) AS 交易用户数
     FROM info_silver.ods_crm_transfer_record trans
-      join (select firm_id ,crm_user_id,partner_id from info_silver.dw_user_account where partner_id in ('pmec','hht')) user1
-      on trans.user_id = user1.crm_user_id
+      JOIN (SELECT
+              firm_id,
+              crm_user_id,
+              partner_id
+            FROM info_silver.dw_user_account
+            WHERE partner_id IN ('pmec', 'hht')) user1
+        ON trans.user_id = user1.crm_user_id
       JOIN info_silver.ods_history_deal deal
         ON user1.firm_id = deal.firmid
     WHERE trans.cur_bgroup_id IN (1, 7, 8, 111, 118)
@@ -516,7 +542,7 @@ FROM
   (
     SELECT
       aaa.cur_bgroup_id      AS id,
-      count(aaa.crm_user_id) AS 有效开仓用户数                     ---有效开仓
+      count(aaa.crm_user_id) AS 有效开仓用户数 ---有效开仓
     FROM
       (
         SELECT
@@ -534,12 +560,14 @@ FROM
         FROM
           (
             SELECT
-              trans.user_id                                  AS crm_user_id,
-              trans.partner_id                               AS partner_id,
-              trans.cur_bgroup_id                            AS cur_bgroup_id,
-              case when partner_id = 'hht' then trans.hht_net_value_sub + trans.hht_net_in_sub
-                when partner_id = 'pmec' then trans.pmec_net_value_sub + trans.pmec_net_in_sub end AS fmoney,
-              trans.submit_time                              AS submit_time
+              trans.user_id                                               AS crm_user_id,
+              trans.partner_id                                            AS partner_id,
+              trans.cur_bgroup_id                                         AS cur_bgroup_id,
+              CASE WHEN partner_id = 'hht'
+                THEN trans.hht_net_value_sub + trans.hht_net_in_sub
+              WHEN partner_id = 'pmec'
+                THEN trans.pmec_net_value_sub + trans.pmec_net_in_sub END AS fmoney,
+              trans.submit_time                                           AS submit_time
             FROM info_silver.ods_crm_transfer_record trans
             WHERE trans.cur_bgroup_id IN (1, 7, 8, 111, 118)
                   AND trans.process IN (5, 6) AND trans.valid = 1
@@ -603,9 +631,7 @@ FROM
     GROUP BY a.cur_bgroup_id
   ) b5
     ON b1.id = b5.id
-ORDER BY b1.id*1;
-
-
+ORDER BY b1.id * 1;
 
 -- Part 9. 南交、广贵内外推折算交易额
 SELECT

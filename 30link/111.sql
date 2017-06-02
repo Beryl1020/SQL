@@ -15,6 +15,10 @@ FROM silver_consult.v_tb_crm_user@consul_std          --7
 SELECT *
 FROM info_silver.tb_crm_user                          --8
 SELECT *
+FROM info_silver.tb_crm_group
+SELECT *
+FROM info_silver.dim_crm_group              --前后端
+SELECT *
 FROM silver_consult.tb_crm_transfer_record@consul_std --9
 SELECT *
 FROM info_silver.ods_crm_transfer_record              --流转单表
@@ -35,7 +39,8 @@ FROM silver_consult.tb_crm_tag@consul_std             --17
 SELECT *
 FROM silver_consult.tb_crm_tag_user_rel@consul_std    --18
 SELECT *
-FROM info_silver.pmec_zj_flow where to_char(fdate,'yyyymm') = '201703' and changetype in (3,4) and amount =0
+FROM info_silver.pmec_zj_flow
+WHERE to_char(fdate, 'yyyymm') = '201703' AND changetype IN (3, 4) AND amount = 0
 SELECT *
 FROM info_silver.edw_fund_fact_d
 
@@ -44,7 +49,7 @@ FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_user_fact_d
 SELECT *
-FROM info_silver.dw_user_account         --史上最全user表
+FROM info_silver.dw_user_account  where user_id = 244869595       --史上最全user表
 SELECT *
 FROM silver_njs.pmec_account_info@silver_std
 SELECT *
@@ -61,7 +66,6 @@ SELECT *
 FROM info_silver.tb_silver_account
 
 
-
 SELECT *
 FROM NSIP_TRADE.TB_NSIP_T_FILLED_ORDER@LINK_NSIP_TRADE  --实时交易表
 
@@ -72,7 +76,8 @@ SELECT *
 FROM NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
 
 SELECT *
-FROM info_silver.ods_order_zcmoney where fdate = 20170526 and partner_id = 'hht'
+FROM info_silver.ods_order_zcmoney
+WHERE fdate = 20170526 AND partner_id = 'hht'
 
 
 SELECT *
@@ -87,11 +92,24 @@ FROM info_silver.tb_nsip_a_funds_after_settle
 SELECT *
 FROM SILVER_NJS.HISTORY_DEAL@SILVERONLINE_LINK
 
+SELECT
+  sum(netzcmoney),
+  sum(overnight),
+  sum(inmoney),
+  sum(outmoney),
+  sum(contnum),
+  sum(point)
+FROM info_silver.rpt_crm_transfer_user_stat
+WHERE to_char(stat_date, 'yyyymmdd') = 20170530
+
+
 SELECT *
-FROM info_silver.rpt_crm_transfer_user_stat where to_char(stat_date,'yyyymmdd') = 20170526
+FROM info_silver.ods_crm_tel_record
 
 
-select * from info_silver.ods_crm_tel_record
+SELECT *
+FROM info_silver.ods_order_zcmoney
+WHERE fdate = '20170530'
 
 
 

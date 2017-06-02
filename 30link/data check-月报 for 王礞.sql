@@ -1,14 +1,14 @@
 SELECT
-  sum(CASE WHEN PARTNER_ID = 'njs' AND fdate BETWEEN 20161001 AND 20161231
+  sum(CASE WHEN PARTNER_ID = 'njs' AND fdate BETWEEN 20170501 AND 20170531
     THEN CONTQTY END),
   --pmec/njs/平台交易额
-  sum(CASE WHEN PARTNER_ID = 'pmec' AND fdate BETWEEN 20161001 AND 20161231
+  sum(CASE WHEN PARTNER_ID = 'pmec' AND fdate BETWEEN 20170501 AND 20170531
     THEN CONTQTY END),
-  sum(CASE WHEN PARTNER_ID = 'hht' AND fdate BETWEEN 20161001 AND 20161231
+  sum(CASE WHEN PARTNER_ID = 'hht' AND fdate BETWEEN 20170501 AND 20170531
     THEN CONTQTY END),
-  sum(CASE WHEN PARTNER_ID = 'sge' AND fdate BETWEEN 20161001 AND 20161231
+  sum(CASE WHEN PARTNER_ID = 'sge' AND fdate BETWEEN 20170501 AND 20170531
     THEN CONTQTY END),
-  sum(CASE WHEN fdate BETWEEN 20161001 AND 20161231
+  sum(CASE WHEN fdate BETWEEN 20170501 AND 20170531
     THEN CONTQTY END)
 FROM info_silver.ods_history_deal
 
@@ -32,9 +32,9 @@ SELECT
   count(DISTINCT trans.user_id)                                  AS 流转单数,
   count(DISTINCT trans.fia_id)
 FROM silver_consult.tb_crm_transfer_record@consul_std trans
-WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170401 AND 20170431
+WHERE to_char(trans.submit_time, 'yyyymmdd') BETWEEN 20170501 AND 20170531
       AND trans.process IN (5, 6) AND trans.valid = 1
-      AND bia_group_id IN (111)
+      --AND bia_group_id IN (111)
 
 
 select * from silver_consult.tb_crm_transfer_record@consul_std  where user_id=1000555208
@@ -44,12 +44,13 @@ select * from  info_silver.ods_crm_transfer_record where user_id=1000555208
 SELECT
   '微销前端开单',
   count(DISTINCT user_id),
-  sum(pmec_net_value_sub + pmec_net_in_sub)
+  sum(case when partner_id = 'pmec' then pmec_net_value_sub + pmec_net_in_sub
+    when partner_id = 'hht' then hht_net_value_sub + hht_net_in_sub end)
 FROM info_silver.ods_crm_transfer_record
 WHERE process IN (5, 6) AND valid = 1
-      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170101 AND 20170131
+      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170501 AND 20170531
       AND fgroup_id IN
-          (112, 113, 114, 106)                                                                                  --微销前端开单
+          (112, 113, 114)                                                                                  --微销前端开单
 
 SELECT
   2                                 AS subid,
@@ -57,35 +58,38 @@ SELECT
       WHEN io.inorout = 'A' AND io.partnerid = 'hht'
         THEN inoutmoney
       WHEN io.inorout = 'B' AND io.partnerid = 'hht'
-        THEN (-1) * inoutmoney END) AS moneypmec,
+        THEN (-1) * inoutmoney END) AS moneyhht,
   sum(CASE WHEN io.inorout = 'A'
     THEN inoutmoney
       WHEN io.inorout = 'B'
-        THEN (-1) * inoutmoney END) AS money --pmec、平台净入金
+        THEN (-1) * inoutmoney END) AS money                 --pmec、平台净入金
 FROM silver_njs.history_transfer@silver_std io
-WHERE io.fdate BETWEEN 20170401 AND 20170431
+WHERE io.fdate BETWEEN 20170501 AND 20170531
 GROUP BY 2
 
 
 SELECT
   '微销前端净入金',
-  sum(CASE WHEN partnerid = 'pmec'
+  sum(CASE WHEN partner_id = 'pmec'
     THEN trans.pmec_net_value_sub + trans.pmec_net_in_sub
-      WHEN partnerid = 'hht'
+      WHEN partner_id = 'hht'
         THEN trans.hht_net_value_sub + trans.hht_net_in_sub END)
-FROM silver_consult.tb_crm_transfer_record@consul_std trans
+FROM info_silver.ods_crm_transfer_record trans
 WHERE process IN (5, 6) AND valid = 1
-      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170401 AND 20170431
-      AND bia_group_id IN (1, 7, 8)
+      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170501 AND 20170531
+      AND fgroup_id IN (112,113,114)
 
 
 SELECT
   '电销前端净入金',
-  sum(pmec_net_value_sub + pmec_net_in_sub)
-FROM info_silver.ods_crm_transfer_record
+sum(CASE WHEN partner_id = 'pmec'
+    THEN trans.pmec_net_value_sub + trans.pmec_net_in_sub
+      WHEN partner_id = 'hht'
+        THEN trans.hht_net_value_sub + trans.hht_net_in_sub END)
+FROM info_silver.ods_crm_transfer_record trans
 WHERE process IN (5, 6) AND valid = 1
-      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170401 AND 20170431
-      AND fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105)
+      AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170501 AND 20170531
+      AND fgroup_id IN (2, 3, 4, 5, 6, 9, 10, 11, 12, 105,106,116,117)
 
 
 SELECT sum(CASE WHEN io.inorout = 'A'
@@ -111,23 +115,13 @@ FROM silver_consult.tb_crm_transfer_record@consul_std trans
   JOIN silver_njs.history_transfer@silver_std io
     ON u.firm_id = io.firmid
 WHERE trans.process IN (5, 6) AND trans.valid = 1
-      AND io.fdate BETWEEN 20170401 AND 20170431
+      AND io.fdate BETWEEN 20170501 AND 20170531
       AND trans.bia_group_id IN (111)
       AND io.realdate > trans.submit_time
       AND io.partnerid IN ('pmec', 'hht')
 
 
-SELECT sum(CASE WHEN io.inorout = 'A'
-  THEN inoutmoney
-           WHEN io.inorout = 'B'
-             THEN (-1) * inoutmoney END) AS money -- 后端微销净入金
-FROM info_silver.ods_crm_transfer_record trans
-  JOIN silver_njs.history_transfer@silver_std io
-    ON trans.firm_id = io.firmid
-WHERE trans.process IN (5, 6) AND trans.valid = 1
-      AND io.fdate BETWEEN 20170101 AND 20170131
-      AND trans.cur_bgroup_id IN (111)
-      AND io.realdate > trans.submit_time
+
 
 
 SELECT count(DISTINCT fia_id)
@@ -135,13 +129,13 @@ FROM info_silver.ods_crm_transfer_record
 WHERE process IN (5, 6) AND valid = 1 AND to_char(submit_time, 'yyyymmdd') BETWEEN 20170101 AND 20170131
 
 
-SELECT count(DISTINCT case when --partner_id ='hht' and
+SELECT count(DISTINCT case when partner_id ='hht' and
              TO_CHAR(OPEN_ACCOUNT_TIME, 'yyyymmdd')                      --开户用户
-             BETWEEN 20170401 AND 20170431 THEN user_id end)
+             BETWEEN 20170501 AND 20170531 THEN user_id end)
 FROM tb_silver_user_stat@silver_std
 
 
-SELECT count(CASE WHEN aa.pid = 'hht' AND aa.mindate BETWEEN 20170401 AND 20170431
+SELECT count(CASE WHEN aa.pid = 'hht' AND aa.mindate BETWEEN 20170501 AND 20170531
   THEN aa.firmid END) --新入金用户
 FROM
   (SELECT
@@ -194,22 +188,22 @@ SELECT
   --交易用户
   count(DISTINCT CASE
                  WHEN --deal.partner_id = 'pmec' AND
-                      deal.fdate BETWEEN '20161001' and '20161231'
+                      deal.fdate BETWEEN '20170501' and '20170531'
                    THEN deal.user_id END) AS cnt1,
   count(DISTINCT CASE
-                 WHEN deal.partner_id = 'hht' AND deal.fdate BETWEEN '20161001' and '20161231'
+                 WHEN deal.partner_id = 'hht' AND deal.fdate BETWEEN '20170501' and '20170531'
                    THEN deal.firmid END) AS cnt2,
   count(DISTINCT CASE
-                 WHEN deal.partner_id = 'pmec' AND deal.fdate BETWEEN '20161001' and '20161231'
+                 WHEN deal.partner_id = 'pmec' AND deal.fdate BETWEEN '20170501' and '20170531'
                    THEN deal.firmid END) AS cnt3,
   count(DISTINCT CASE
-                 WHEN deal.partner_id = 'njs'   AND deal.fdate BETWEEN '20161001' and '20161231'
+                 WHEN deal.partner_id = 'njs'   AND deal.fdate BETWEEN '20170501' and '20170531'
                    THEN deal.firmid END) AS cnt4,
   count(DISTINCT CASE
-                 WHEN deal.partner_id = 'sge' AND deal.fdate BETWEEN '20161001' and '20161231'
+                 WHEN deal.partner_id = 'sge' AND deal.fdate BETWEEN '20170501' and '20170531'
                    THEN deal.firmid END) AS cnt5
 FROM info_silver.ods_history_deal deal
-WHERE deal.fdate BETWEEN '20161001' and '20161231'
+WHERE deal.fdate BETWEEN '20170501' and '20170531'
 --   and deal.ordersty<>151 --非强平
 
 
@@ -235,7 +229,7 @@ FROM
          WHEN io.inorout = 'B'
            THEN (-1) * inoutmoney END) AS money --净入金
    FROM silver_njs.history_transfer@silver_std io
-   WHERE io.partnerid = 'pmec' AND io.fdate BETWEEN 20161001 AND 20161231
+   WHERE io.partnerid in ('hht','pmec','njs') AND io.fdate BETWEEN 20170501 AND 20170531
    GROUP BY 2) sub2
     ON sub1.subid <> sub2.subid
   LEFT JOIN
@@ -298,13 +292,13 @@ ORDER BY type
 SELECT
   sum(-amount)
 FROM NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
-WHERE to_char(create_time - 0.25, 'yyyymmdd') BETWEEN 20170401 AND 20170430
+WHERE to_char(create_time - 0.25, 'yyyymmdd') BETWEEN 20170501 AND 20170531
 and type in (5,6)
 
 
 SELECT sum(weight) * 8
 FROM info_silver.tb_nsip_t_filled_order
-WHERE to_char(trade_time - 0.25, 'yyyymmdd') BETWEEN 20170501 AND 20170505 AND
+WHERE to_char(create_time - 0.25, 'yyyymmdd') BETWEEN 20170501 AND 20170531 AND
       ((POSITION_DIRECTION = 1 AND POSITION_OPERATION = 0) OR (POSITION_DIRECTION = 2 AND POSITION_OPERATION = 1))
 
 
@@ -313,3 +307,6 @@ FROM info_silver.tb_nsip_t_filled_order a
 WHERE to_char(a.trade_Date, 'yyyymmdd') BETWEEN 20170401 AND 20170431
 
 select * from NSIP_ACCOUNT.tb_nsip_account_funds_bill@LINK_NSIP_ACCOUNT
+
+
+select * from info_silver.tb_nsip_t_filled_order where trader_id =163170424104235
