@@ -49,7 +49,9 @@ FROM info_silver.pmec_zj_flow
 SELECT *
 FROM info_silver.edw_user_fact_d
 SELECT *
-FROM info_silver.dw_user_account  where user_id = 244869595       --史上最全user表
+FROM info_silver.dw_user_account
+WHERE user_name = 'm13952363744@163.com';     --史上最全user表
+
 SELECT *
 FROM silver_njs.pmec_account_info@silver_std
 SELECT *
@@ -104,7 +106,7 @@ WHERE to_char(stat_date, 'yyyymmdd') = 20170530
 
 
 SELECT *
-FROM info_silver.ods_crm_tel_record
+FROM info_silver.ods_crm_tel_record    --比较全的通话记录表
 
 
 SELECT *
@@ -112,8 +114,16 @@ FROM info_silver.ods_order_zcmoney
 WHERE fdate = '20170530'
 
 
+select * from info_silver.tb_crm_memo
+
+
+select * from info_silver.tb_info_klineday where partner_id = 'hht'
 
 
 
+
+select * from info_silver.tb_nsip_q_quote_realtime
+
+select * from info_silver.ods_nsip_q_quote_common  -- 波幅表
 
 

@@ -49,7 +49,7 @@ SELECT b.user_id as 主站id,
   b.real_name as 用户姓名,
   b.ia_name as 投顾姓名,
   b.group_id as 组别,
-  sum(a.trade_price*a.weight)*0.00065 as 本月流转后手续费
+  sum(a.trade_price*a.weight)*0.00056 as 本月流转后手续费
 FROM info_silver.dw_user_account b
   left join info_silver.tb_nsip_t_filled_order a
   on a.trader_id = b.firm_id
@@ -122,7 +122,7 @@ SELECT b.user_id as 主站id,
   b.real_name as 用户姓名,
   b.ia_name as 投顾姓名,
   b.group_id as 组别,
-  sum(a.trade_price*a.weight)*0.00065 as 昨日流转后手续费
+  sum(a.trade_price*a.weight)*0.00056 as 昨日流转后手续费
 FROM info_silver.dw_user_account b
   left join info_silver.tb_nsip_t_filled_order a
   on a.trader_id = b.firm_id
@@ -140,7 +140,7 @@ on aa.主站id=cc.主站id
 
 
 select to_char(a.stat_date,'yyyymmdd') as 日期,
-b.crm_userid as crm_id,
+count(distinct b.crm_userid) as crm_id,
 max(b.real_name) as 用户姓名,
 max(b.ia_name) as 投顾姓名,
 max(b.group_id) as 组别,
@@ -154,6 +154,5 @@ from info_silver.rpt_crm_transfer_user_stat a
 where ((a.submit_time is null ) or to_char(a.stat_date,'yyyymmdd')>=to_char(a.submit_time,'yyyymmdd'))
 and a.stat_date>=trunc(sysdate-1)
   and a.group_id in (1,7,8,111,118)
-group by to_char(a.stat_date,'yyyymmdd'),
-b.crm_userid
+group by to_char(a.stat_date,'yyyymmdd')
 

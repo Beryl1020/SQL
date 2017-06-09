@@ -94,14 +94,14 @@ FROM
       firm_id          AS firmid,
       max(net_zcmoney) AS assets
     FROM info_silver.ods_order_zcmoney
-    WHERE fdate BETWEEN 20170501 AND 20170531 AND partner_id IN ('hht', 'pmec') AND net_zcmoney IS NOT NULL
+    WHERE fdate BETWEEN 20170401 AND 20170431 AND partner_id IN ('hht', 'pmec') AND net_zcmoney IS NOT NULL
     GROUP BY firm_id
   ) ass
     ON deal.firmid = ass.firmid
   JOIN tb_silver_user_stat@silver_std c ON ass.firmid = c.firm_id
 WHERE ass.assets >= 50000
       AND deal.partner_id IN ('hht', 'pmec')
-      AND deal.fdate BETWEEN 20170501 AND 20170531
+      AND deal.fdate BETWEEN 20170401 AND 20170431
 
 
 SELECT
