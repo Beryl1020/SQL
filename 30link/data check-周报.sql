@@ -164,7 +164,7 @@ SELECT
   sub1.money              AS 总入金,
   sub2.money              AS 净入金,
   sub3.money              AS 总交易额,
-  sub3.money * 0.00065    AS 手续费,
+  sub3.money * 0.00056    AS 手续费,
   sub4.money              AS 点差,
   sub5.money              AS 滞纳金,
   sub6.money - sub4.money AS 头寸

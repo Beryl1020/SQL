@@ -513,8 +513,6 @@ FROM
      bbb.ia_name
   ) a8
     ON a1.ia_id = a8.ia_id
-
-
 GROUP BY a1.ia_id,
   a1.group_id,
   a1.ia_name
@@ -1025,4 +1023,22 @@ FROM
      bbb.group_id
   ) a8
     ON a1.group_id = a8.group_id
+  left join
+    (select a.group_id,sum(b.net_assets) FROM info_silver.ods_crm_transfer_record trans
+           JOIN info_silver.dw_user_account a
+             ON trans.user_id = a.crm_user_id
+                AND a.partner_id = 'hht'
+      join silver_njs.tb_silver_data_center@silver_std b
+      on a.firm_id = b.firmid
+      and b.hdate = (SELECT CASE WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期日'
+        THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 2, 'yyyymmdd')
+                              WHEN to_char(trunc(sysdate - 1, 'mm') - 1, 'day') = '星期六'
+                                THEN to_char(trunc(sysdate - 1, 'mm') - 1 - 1, 'yyyymmdd')
+                              ELSE to_char(trunc(sysdate - 1, 'mm') - 1, 'yyyymmdd') END
+                       FROM dual)
+      WHERE
+           a.group_id IN (1, 7, 8, 111, 118)
+           AND trans.process IN (5, 6) AND trans.valid = 1
+      group by a.group_id) a9
+    on a1.group_id = a9.group_id
 GROUP BY a1.group_id
